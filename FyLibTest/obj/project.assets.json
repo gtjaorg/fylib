@@ -473,9 +473,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLibTest\\FyLibTest.csproj",
+      "projectUniqueName": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLibTest\\FyLibTest.csproj",
       "projectName": "FyLibTest",
-      "projectPath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLibTest\\FyLibTest.csproj",
+      "projectPath": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLibTest\\FyLibTest.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLibTest\\obj\\",
       "projectStyle": "PackageReference",
@@ -499,8 +499,8 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "projectReferences": {
-            "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\FyLib.csproj": {
-              "projectPath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\FyLib.csproj"
+            "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\FyLib.csproj": {
+              "projectPath": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\FyLib.csproj"
             }
           }
         }

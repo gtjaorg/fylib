@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\FyLib.csproj": {}
+    "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\FyLib.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\FyLib.csproj": {
+    "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\FyLib.csproj": {
       "version": "1.0.6",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\FyLib.csproj",
+        "projectUniqueName": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\FyLib.csproj",
         "projectName": "FyLib",
-        "projectPath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\FyLib.csproj",
+        "projectPath": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\FyLib.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\obj\\",
         "projectStyle": "PackageReference",
