@@ -11,7 +11,7 @@
         "projectName": "FyLibTest",
         "projectPath": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLibTest\\FyLibTest.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLibTest\\obj\\",
+        "outputPath": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLibTest\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -75,7 +75,7 @@
         "projectName": "FyLib",
         "projectPath": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\FyLib.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLib\\obj\\",
+        "outputPath": "C:\\Users\\Administrator\\source\\repos\\FyLib\\FyLib\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

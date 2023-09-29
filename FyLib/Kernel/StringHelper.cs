@@ -10,13 +10,15 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
+using HttpClient = FyLib.Http.HttpClient;
+
 /// <summary>
 /// String扩展类
 /// </summary>
 public static class StringHelper
 {
 
-    public static HttpClient asHttpClient(this string str)
+    public static FyLib.Http.HttpClient asHttpClient(this string str)
     {
         HttpClient client = new HttpClient(str);
         return client;
