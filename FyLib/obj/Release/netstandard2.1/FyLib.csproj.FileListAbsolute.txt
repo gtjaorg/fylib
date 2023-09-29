@@ -1,0 +1,10 @@
+D:\Work\C#\NewFyLib\FyLib\FyLib\bin\Release\netstandard2.1\FyLib.deps.json
+D:\Work\C#\NewFyLib\FyLib\FyLib\bin\Release\netstandard2.1\FyLib.dll
+D:\Work\C#\NewFyLib\FyLib\FyLib\bin\Release\netstandard2.1\FyLib.pdb
+D:\Work\C#\NewFyLib\FyLib\FyLib\obj\Release\netstandard2.1\FyLib.csproj.AssemblyReference.cache
+D:\Work\C#\NewFyLib\FyLib\FyLib\obj\Release\netstandard2.1\FyLib.GeneratedMSBuildEditorConfig.editorconfig
+D:\Work\C#\NewFyLib\FyLib\FyLib\obj\Release\netstandard2.1\FyLib.AssemblyInfoInputs.cache
+D:\Work\C#\NewFyLib\FyLib\FyLib\obj\Release\netstandard2.1\FyLib.AssemblyInfo.cs
+D:\Work\C#\NewFyLib\FyLib\FyLib\obj\Release\netstandard2.1\FyLib.csproj.CoreCompileInputs.cache
+D:\Work\C#\NewFyLib\FyLib\FyLib\obj\Release\netstandard2.1\FyLib.dll
+D:\Work\C#\NewFyLib\FyLib\FyLib\obj\Release\netstandard2.1\FyLib.pdb

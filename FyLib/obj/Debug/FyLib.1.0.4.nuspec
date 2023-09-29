@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>FyLib</id>
+    <version>1.0.4</version>
+    <authors>枫影傲然</authors>
+    <description>Package Description</description>
+    <dependencies>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Microsoft.Win32.Registry" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.2" exclude="Build,Analyzers" />
+        <dependency id="System.Management" version="7.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Net.Http.WinHttpHandler" version="7.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="/Volumes/新加卷/Work/C#/NewFyLib/FyLib/FyLib/bin/Debug/netstandard2.1/FyLib.dll" target="lib/netstandard2.1/FyLib.dll" />
+  </files>
+</package>

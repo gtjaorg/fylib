@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "dgSpecHash": "IHg4/5UNk2tQwTxwOe9u4LR6OCAMF1e0o9OP7KM4aiswycQAfkqRzCxPfcp9MU7cKf4vIPKut385GJ3FJxSgAw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Administrator\\Source\\Repos\\FyLib\\FyLibTest\\FyLibTest.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\newtonsoft.json\\13.0.2\\newtonsoft.json.13.0.2.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.codedom\\7.0.0\\system.codedom.7.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.management\\7.0.0\\system.management.7.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.net.http.winhttphandler\\7.0.0\\system.net.http.winhttphandler.7.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.security.accesscontrol\\5.0.0\\system.security.accesscontrol.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.security.principal.windows\\5.0.0\\system.security.principal.windows.5.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\fylib\\1.0.6\\fylib.1.0.6.nupkg.sha512"
+  ],
+  "logs": []
+}
