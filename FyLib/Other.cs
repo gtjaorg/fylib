@@ -149,6 +149,7 @@ public static class Other
         return text2;
     }
 
+    private static readonly Random random = new Random();
     /// <summary>
     /// 随机数字
     /// </summary>
@@ -157,8 +158,7 @@ public static class Other
     /// <returns></returns>
     public static int RandInt(int min, int max)
     {
-        long ticks = DateTime.Now.Ticks;
-        return new Random(checked((int)(ticks & 0xFFFFFFFFu) | (int)(ticks >> 32))).Next(min, max);
+        return random.Next(min, max);
     }
 
     /// <summary>
@@ -168,8 +168,7 @@ public static class Other
     /// <returns></returns>
     public static int RandInt(int max)
     {
-        long ticks = DateTime.Now.Ticks;
-        return new Random(checked((int)(ticks & 0xFFFFFFFFu) | (int)(ticks >> 32))).Next(max);
+        return random.Next(max);
     }
 
     /// <summary>
@@ -178,8 +177,7 @@ public static class Other
     /// <returns></returns>
     public static int RandInt()
     {
-        long ticks = DateTime.Now.Ticks;
-        return new Random(checked((int)(ticks & 0xFFFFFFFFu) | (int)(ticks >> 32))).Next();
+        return random.Next();
     }
 
     /// <summary>
