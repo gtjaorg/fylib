@@ -3,6 +3,7 @@
 // FyLib.Winhttp
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -98,8 +99,34 @@ public class Winhttp
     /// </summary>
     public Winhttp()
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
-
+    private void MakeRequest(HttpRequestMessage request)
+    {
+        if (HttpVersion2)
+        {
+            request.Version = new Version("2.0");
+        }
+        foreach (KeyValuePair<string, string> item in Headers.ToList())
+        {
+            request.Headers.Add(item.Key, item.Value);
+        }
+        if (Cookie != "")
+        {
+            request.Headers.Add("cookie", Cookie);
+        }
+        Request = request;
+    }
+    private async Task<HttpResponseMessage> GetResponseAsync(string path)
+    {
+        MakeHeader();
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        MakeRequest(httpRequestMessage);
+        var response = await client.SendAsync(httpRequestMessage);
+        Response = response;
+        StatusCode = response.StatusCode;
+        return response;
+    }
     /// <summary>
     /// 获取Get文本返回
     /// </summary>
@@ -107,31 +134,31 @@ public class Winhttp
     /// <returns></returns>
     public string GetAsString(string path = "")
     {
-        MakeHeader();
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        foreach (KeyValuePair<string, string> item in Headers.ToList())
-        {
-            httpRequestMessage.Headers.Add(item.Key, item.Value);
-        }
-        if (Cookie != "")
-        {
-            httpRequestMessage.Headers.Add("cookie", Cookie);
-        }
-        Task<HttpResponseMessage> task = client.SendAsync(httpRequestMessage);
-        task.Wait();
-        HttpResponseMessage httpResponseMessage = (Response = task.Result);
-        StatusCode = httpResponseMessage.StatusCode;
-        if (((httpResponseMessage.StatusCode == HttpStatusCode.Found) & Redirect) && httpResponseMessage.Headers.TryGetValues("location", out var values))
-        {
-            string text = values.ToArray()[0];
-            Domain = text;
-            return GetAsString(path);
-        }
-        Task<string> task2 = httpResponseMessage.Content.ReadAsStringAsync();
-        task2.Wait();
-        return task2.Result;
+        var result = GetAsStringAsync(path).Result;
+        return result;
     }
-
+    /// <summary>
+    /// 获取返回文本
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public async Task<string> GetAsStringAsync(string path)
+    {
+        var response = await GetResponseAsync(path);
+        var result = await response.Content.ReadAsStringAsync();
+        return result;
+    }
+    /// <summary>
+    /// 获取返回bytes
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public async Task<byte[]> GetAsBytesAsync(string path)
+    {
+        var response = await GetResponseAsync(path);
+        var result = await response.Content.ReadAsByteArrayAsync();
+        return result;
+    }
     /// <summary>
     /// 获取Get 字节集返回
     /// </summary>
@@ -139,30 +166,8 @@ public class Winhttp
     /// <returns></returns>
     public byte[] GetAsBytes(string path = "")
     {
-        MakeHeader();
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        foreach (KeyValuePair<string, string> item in Headers.ToList())
-        {
-            httpRequestMessage.Headers.Add(item.Key, item.Value);
-        }
-        if (Cookie != "")
-        {
-            httpRequestMessage.Headers.Add("cookie", Cookie);
-        }
-        Request = httpRequestMessage;
-        Task<HttpResponseMessage> task = client.SendAsync(httpRequestMessage);
-        task.Wait();
-        HttpResponseMessage httpResponseMessage = Response = task.Result;
-        StatusCode = httpResponseMessage.StatusCode;
-        if (((httpResponseMessage.StatusCode == HttpStatusCode.Found) & Redirect) && httpResponseMessage.Headers.TryGetValues("location", out var values))
-        {
-            string text = values.ToArray()[0];
-            Domain = text;
-            return GetAsBytes(path);
-        }
-        Task<byte[]> task2 = httpResponseMessage.Content.ReadAsByteArrayAsync();
-        task2.Wait();
-        return task2.Result;
+        var result = GetAsBytesAsync(path).Result;
+        return result;
     }
 
     /// <summary>
@@ -172,19 +177,38 @@ public class Winhttp
     /// <returns></returns>
     public JObject GetAsJson(string path = "")
     {
-        string asString = GetAsString(path);
+        
+        var result = GetAsString(path);
         try
         {
-            return JObject.Parse(asString);
+            return JObject.Parse(result);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine(ex.Message);
             return null;
         }
     }
-
     /// <summary>
-    /// 获取get 自定义数据
+    /// 获取Json返回
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public async Task<JObject> GetAsJsonAsync(string path)
+    {
+        var result = await GetAsStringAsync(path);
+        try
+        {
+            return JObject.Parse(result);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return null;
+        }
+    }
+    /// <summary>
+    /// 获取对象
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="path"></param>
@@ -196,12 +220,67 @@ public class Winhttp
         {
             return JsonConvert.DeserializeObject<T>(asString);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return default(T);
+            Debug.WriteLine(ex.Message);
+            return default;
+        }
+    }
+    /// <summary>
+    /// 获取对象
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public async Task<T> GetAsObjectAsync<T>(string path)
+    {
+        string asString = await GetAsStringAsync(path);
+        try
+        {
+            return JsonConvert.DeserializeObject<T>(asString);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return default;
         }
     }
 
+
+
+    /// <summary>
+    /// Post 返回文本
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="body"></param>
+    /// <returns>String</returns>
+    public async Task<string> PostAsStringAsync(string path,object body)
+    {
+        if(body==null) return await GetAsStringAsync(path);
+        MakeHeader();
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path);
+        MakeRequest(httpRequestMessage);
+        JsonSerializerSettings val = new JsonSerializerSettings
+        {
+            NullValueHandling = (NullValueHandling)1
+        };
+        if (body.GetType() == typeof(string))
+        {
+            httpRequestMessage.Content = new StringContent((string)body, Encoding.UTF8, ContentType);
+        }
+        else if (body.GetType() == typeof(byte[]))
+        {
+            httpRequestMessage.Content = new ByteArrayContent((byte[])body);
+        }
+        else
+        {
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(body, val), Encoding.UTF8, ContentType);
+        }
+        HttpResponseMessage httpResponseMessage = (Response = await client.SendAsync(httpRequestMessage));
+        var result  = await httpResponseMessage.Content.ReadAsStringAsync();
+        return result;
+
+    }
     /// <summary>
     /// Post 返回文本
     /// </summary>
@@ -210,51 +289,28 @@ public class Winhttp
     /// <returns></returns>
     public string PostAsString(string path, object body)
     {
-        //IL_0088: Unknown result type (might be due to invalid IL or missing references)
-        //IL_008d: Unknown result type (might be due to invalid IL or missing references)
-        //IL_0095: Expected O, but got Unknown
-        MakeHeader();
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path);
-        foreach (KeyValuePair<string, string> item in Headers.ToList())
-        {
-            httpRequestMessage.Headers.Add(item.Key, item.Value);
-        }
-        if (Cookie != "")
-        {
-            httpRequestMessage.Headers.Add("cookie", Cookie);
-        }
-        JsonSerializerSettings val = new JsonSerializerSettings
-        {
-            NullValueHandling = (NullValueHandling)1
-        };
-        if (body.GetType() == typeof(string))
-        {
-            httpRequestMessage.Content = new StringContent(body.ToString(), Encoding.UTF8, ContentType);
-        }
-        else if (body.GetType() == typeof(byte[]))
-        {
-            httpRequestMessage.Content = new ByteArrayContent(body as byte[]);
-        }
-        else
-        {
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(body, val), Encoding.UTF8, ContentType);
-        }
-        Request = httpRequestMessage;
-        Task<HttpResponseMessage> task = client.SendAsync(httpRequestMessage);
-        task.Wait();
-        HttpResponseMessage httpResponseMessage = (Response = task.Result);
-        StatusCode = httpResponseMessage.StatusCode;
-        if (((httpResponseMessage.StatusCode == HttpStatusCode.Found) & Redirect) && httpResponseMessage.Headers.TryGetValues("location", out var values))
-        {
-            string text = values.ToArray()[0];
-            Domain = text;
-            return PostAsString(path, body);
-        }
-        Task<string> task2 = httpResponseMessage.Content.ReadAsStringAsync();
-        task2.Wait();
-        return task2.Result;
+        var result = PostAsStringAsync(path, body).Result;
+        return result;
     }
-
+    /// <summary>
+    /// Post
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="path"></param>
+    /// <param name="body"></param>
+    /// <returns>Object</returns>
+    public async Task< T> PostAsObjectAsync<T>(string path, object body)
+    {
+        string text = await PostAsStringAsync(path, body);
+        try
+        {
+            return JsonConvert.DeserializeObject<T>(text);
+        }
+        catch (Exception)
+        {
+            return default;
+        }
+    }
     /// <summary>
     /// Post 返回自定义对象
     /// </summary>
@@ -271,10 +327,28 @@ public class Winhttp
         }
         catch (Exception)
         {
-            return default(T);
+            return default;
         }
     }
+    /// <summary>
+    /// Post
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="body"></param>
+    /// <returns>JObject</returns>
+    public async Task< JObject> PostAsJsonAsync(string path, object body)
+    {
+        string text = await PostAsStringAsync(path, body);
+        try
+        {
+            return JObject.Parse(text);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
 
+    }
     /// <summary>
     /// Post 返回Json
     /// </summary>
@@ -292,39 +366,6 @@ public class Winhttp
         {
             return null;
         }
-    }
-
-    public bool PostFile(string path, string filename)
-    {
-        if (!File.Exists(filename))
-        {
-            return false;
-        }
-        MakeHeader();
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path);
-        foreach (KeyValuePair<string, string> item in Headers.ToList())
-        {
-            httpRequestMessage.Headers.Add(item.Key, item.Value);
-        }
-        if (Cookie != "")
-        {
-            httpRequestMessage.Headers.Add("cookie", Cookie);
-        }
-        MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent("------WebKitFormBoundarygV3AiwcDMOzPLs0P");
-        multipartFormDataContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-        string fileName = Path.GetFileName(filename);
-        StringContent stringContent = new StringContent("123465");
-        stringContent.Headers.ContentType = null;
-        multipartFormDataContent.Add(stringContent, "sign");
-        stringContent = new StringContent("true");
-        stringContent.Headers.ContentType = null;
-        multipartFormDataContent.Add(stringContent, "create_media");
-        StreamContent streamContent = new StreamContent(File.OpenRead(filename));
-        streamContent.Headers.ContentType = new MediaTypeHeaderValue("video/mp4");
-        multipartFormDataContent.Add(streamContent, "file", fileName);
-        httpRequestMessage.Content = multipartFormDataContent;
-        client.SendAsync(httpRequestMessage);
-        return false;
     }
 
     /// <summary>
@@ -348,34 +389,17 @@ public class Winhttp
         {
             if (client == null)
             {
-                if (HttpVersion2)
-                {
-                    client = new HttpClient(new FyHttpHandler());
-                    client.BaseAddress = new Uri(domain);
-                    client.Timeout = Other.GetTimeSpan(Timeout * 1000);
-                    client.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
-                    client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
-                    client.DefaultRequestHeaders.Accept.TryParseAdd(Accept);
-                }
-                else
-                {
-                    client = new HttpClient();
-                    client.BaseAddress = new Uri(domain);
-                    client.Timeout = Other.GetTimeSpan(Timeout * 1000);
-                    client.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
-                    client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
-                    client.DefaultRequestHeaders.Accept.TryParseAdd(Accept);
-                }
+                SocketsHttpHandler handler = new SocketsHttpHandler();
+                handler.AllowAutoRedirect = Redirect;
+                handler.EnableMultipleHttp2Connections = true;
+                handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
+                client = new HttpClient(handler);
+                client.BaseAddress = new Uri(domain);
+                client.Timeout = Other.GetTimeSpan(Timeout * 1000);
+                client.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
+                client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
+                client.DefaultRequestHeaders.Accept.TryParseAdd(Accept);
             }
-        }
-    }
-
-    internal class FyHttpHandler : WinHttpHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            request.Version = new Version("2.0");
-            return base.SendAsync(request, cancellationToken);
         }
     }
 }

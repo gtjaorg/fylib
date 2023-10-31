@@ -15,13 +15,15 @@ using static Winhttp;
 
 namespace FyLib.Http
 {
-    public class HttpClient
+    /// <summary>
+    /// 快速Http对象
+    /// </summary>
+    public class QuickHttp
     {
-
 
         private Uri _url;
         private string _path;
-        private System.Net.Http.HttpClient _client;
+        private HttpClient _client;
         private int _timeOut = 10000;
         private string _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36 Edg/96.0.1054.62";
         private string _accept = "application/json";
@@ -32,17 +34,18 @@ namespace FyLib.Http
         /// 构造函数
         /// </summary>
         /// <param name="domain">根域名, 如https://www.baidu.com</param>
-        public HttpClient(string domain)
+        public QuickHttp(string domain)
         {
             _url = new Uri(domain);
             _path = _url.LocalPath;
+            _url.Query.Split("&").Select(a => a.Split("=")).ToList().ForEach(a => _querys.Add(a[0], a[1]));
         }
         /// <summary>
         /// 设置超时, 默认10000
         /// </summary>
         /// <param name="timeout">毫秒</param>
         /// <returns></returns>
-        public HttpClient setTimeout(int timeout)
+        public QuickHttp setTimeout(int timeout)
         {
             this._timeOut = timeout;
             return this;
@@ -52,7 +55,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="userAgent"></param>
         /// <returns></returns>
-        public HttpClient setUserAgent(string userAgent)
+        public QuickHttp setUserAgent(string userAgent)
         {
             this._userAgent = userAgent;
             return this;
@@ -62,7 +65,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="accept"></param>
         /// <returns></returns>
-        public HttpClient setAccept(string accept)
+        public QuickHttp setAccept(string accept)
         {
             this._accept = accept;
             return this;
@@ -73,7 +76,7 @@ namespace FyLib.Http
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public HttpClient addHeader(string key, string value)
+        public QuickHttp addHeader(string key, string value)
         {
             _headers.Add(key, value);
             return this;
@@ -84,7 +87,7 @@ namespace FyLib.Http
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public HttpClient addQuery(string key, string value)
+        public QuickHttp addQuery(string key, string value)
         {
             _querys.Add(key, value);    
             return this;
@@ -94,7 +97,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public HttpClient removeHeader(string key)
+        public QuickHttp removeHeader(string key)
         {
             _headers.Remove(key);
             return this;
@@ -104,7 +107,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public HttpClient setAutoRedirect(bool value)
+        public QuickHttp setAutoRedirect(bool value)
         {
             _allowAutoRedirect = value;
             return this;
@@ -114,7 +117,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public HttpClient setReferer(string value)
+        public QuickHttp setReferer(string value)
         {
             addHeader("Referer", value);
             return this;
@@ -125,6 +128,10 @@ namespace FyLib.Http
         public HttpResponseMessage? ResponseMessage { get; set; }
 
         #region Get
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <returns>HttpResponseMessage</returns>
         public Task<HttpResponseMessage> GetAsync()
         {
             PackClient();
@@ -136,6 +143,10 @@ namespace FyLib.Http
             var result = _client.SendAsync(msg);
             return result;
         }
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <returns>string</returns>
         public async Task<string?> GetAsStringAsync()
         {
             var result = await GetAsync();
@@ -155,6 +166,10 @@ namespace FyLib.Http
             }
             return await result.Content.ReadAsStringAsync();
         }
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <returns>byte[]</returns>
         public async Task<byte[]?> GetAsBytesAsync()
         {
             var result = await GetAsync();
@@ -166,12 +181,21 @@ namespace FyLib.Http
             var t = await result.Content.ReadAsByteArrayAsync();
             return t;
         }
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <returns>JToken</returns>
         public async Task<JToken?> GetAsJsonAsync()
         {
             var str = await GetAsStringAsync();
             if (str==null || str.IsNullOrEmpty()) return null;
             return JToken.Parse(str);
         }
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>T</returns>
         public async Task<T?> GetAsObjectAsync<T>()
         {
             var str = await GetAsStringAsync();
@@ -192,6 +216,12 @@ namespace FyLib.Http
             var result = _client.SendAsync(msg);
             return result;
         }
+        /// <summary>
+        /// Post String
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>HttpResponseMessage</returns>
         public async Task<HttpResponseMessage> PostAsync(string body, Encoding? encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
@@ -199,6 +229,12 @@ namespace FyLib.Http
             var result = await PostAsync(content);
             return result;
         }
+        /// <summary>
+        /// Post Object
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>HttpResponseMessage</returns>
         public async Task<HttpResponseMessage> PostAsync(object body, Encoding? encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
@@ -206,6 +242,12 @@ namespace FyLib.Http
             var result = await PostAsync(content);
             return result;
         }
+        /// <summary>
+        /// Post Jtoken
+        /// </summary>
+        /// <param name="JToken"></param>
+        /// <param name="encoding"></param>
+        /// <returns>HttpResponseMessage</returns>
         public async Task<HttpResponseMessage> PostAsync( JToken JToken, Encoding? encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
@@ -219,6 +261,11 @@ namespace FyLib.Http
             var result = await PostAsync(content);
             return result;
         }
+        /// <summary>
+        /// Post Byte[]
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns>HttpResponseMessage</returns>
         public async Task<HttpResponseMessage> PostAsync(byte[] bytes)
         {
             if(bytes==null) bytes = new byte[0];
@@ -226,7 +273,12 @@ namespace FyLib.Http
             var result = await PostAsync(content);
             return result;
         }
-
+        /// <summary>
+        /// Post String
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>string</returns>
         public async Task<string?> PostAsStringAsync(string body, Encoding? encoding = null)
         {
             var result = await PostAsync(body,encoding);
@@ -245,6 +297,12 @@ namespace FyLib.Http
             }
             return await result.Content.ReadAsStringAsync();
         }
+        /// <summary>
+        /// Post String
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>JToken</returns>
         public async Task<JToken> PostAsJTokenAsync(string body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
@@ -252,6 +310,12 @@ namespace FyLib.Http
             JToken obj = JToken.Parse(str);
             return obj;
         }
+        /// <summary>
+        /// Post Jtoken
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>string</returns>
         public async Task<string?> PostAsStringAsync(JToken body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
@@ -270,6 +334,12 @@ namespace FyLib.Http
             }
             return await result.Content.ReadAsStringAsync();
         }
+        /// <summary>
+        /// Post Jtoken
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>JToken</returns>
         public async Task<JToken> PostAsJTokenAsync(JToken body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
@@ -277,6 +347,11 @@ namespace FyLib.Http
             JToken obj = JToken.Parse(str);
             return obj;
         }
+        /// <summary>
+        /// Post Byte[]
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns>string</returns>
         public async Task<string?> PostAsStringAsync(byte[] body)
         {
             var result = await PostAsync(body);
@@ -295,6 +370,11 @@ namespace FyLib.Http
             }
             return await result.Content.ReadAsStringAsync();
         }
+        /// <summary>
+        /// Post Byte[]
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns>Jtoken</returns>
         public async Task<JToken> PostAsJTokenAsync(byte[] body)
         {
             var str = await PostAsStringAsync(body);
@@ -302,6 +382,12 @@ namespace FyLib.Http
             JToken obj = JToken.Parse(str);
             return obj;
         }
+        /// <summary>
+        /// Post Object
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>string</returns>
         public async Task<string?> PostAsStringAsync(object body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
@@ -320,6 +406,12 @@ namespace FyLib.Http
             }
             return await result.Content.ReadAsStringAsync();
         }
+        /// <summary>
+        /// Post Object
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>Jtoken</returns>
         public async Task<JToken> PostAsJTokenAsync(object body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
@@ -327,6 +419,12 @@ namespace FyLib.Http
             JToken obj = JToken.Parse(str);
             return obj;
         }
+        /// <summary>
+        /// Post String
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>Byte[]</returns>
         public async Task<byte[]?> PostAsBytesAsync(string body , Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
@@ -337,6 +435,11 @@ namespace FyLib.Http
             var t = await result.Content.ReadAsByteArrayAsync();
             return t;
         }
+        /// <summary>
+        /// Post Byte[]
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns>Byte[]</returns>
         public async Task<byte[]?> PostAsBytesAsync(byte[] body)
         {
             var result = await PostAsync(body);
@@ -347,6 +450,12 @@ namespace FyLib.Http
             var t = await result.Content.ReadAsByteArrayAsync();
             return t;
         }
+        /// <summary>
+        /// Post Object
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>Byte[]</returns>
         public async Task<byte[]?> PostAsBytesAsync(object body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
@@ -357,6 +466,12 @@ namespace FyLib.Http
             var t = await result.Content.ReadAsByteArrayAsync();
             return t;
         }
+        /// <summary>
+        /// Post JToken
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>Byte[]</returns>
         public async Task<byte[]?> PostAsBytesAsync(JToken body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
@@ -367,24 +482,51 @@ namespace FyLib.Http
             var t = await result.Content.ReadAsByteArrayAsync();
             return t;
         }
+        /// <summary>
+        /// Post String
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>T</returns>
         public async Task<T?> PostAsObjectAsync<T>(string body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null || str.IsNullOrEmpty()) return default;
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
         }
+        /// <summary>
+        /// Post JToken
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>T</returns>
         public async Task<T?> PostAsObjectAsync<T>(JToken body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null || str.IsNullOrEmpty()) return default;
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
         }
+        /// <summary>
+        /// Post Object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <returns>T</returns>
         public async Task<T?> PostAsObjectAsync<T>(object body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null || str.IsNullOrEmpty()) return default;
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
         }
+        /// <summary>
+        /// Post Byte[]
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="body"></param>
+        /// <returns>T</returns>
         public async Task<T?> PostAsObjectAsync<T>(byte[] body)
         {
             var str = await PostAsStringAsync(body);
@@ -406,7 +548,15 @@ namespace FyLib.Http
             _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
             _client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
             string query = string.Join("&", _querys.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
-            _path += "?" + query;
+            if (query.StartsWith("?"))
+            {
+                _path +=  query;
+            }
+            else
+            {
+                _path += "?" + query;
+            }
+            
         }
     }
 }

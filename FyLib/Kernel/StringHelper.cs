@@ -2,7 +2,6 @@
 
 // StringHelper
 using FyLib.Http;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,17 +9,20 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using HttpClient = FyLib.Http.HttpClient;
 
 /// <summary>
 /// String扩展类
 /// </summary>
 public static class StringHelper
 {
-
-    public static FyLib.Http.HttpClient asHttpClient(this string str)
+    /// <summary>
+    /// 转换为QuickHttp
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns></returns>
+    public static FyLib.Http.QuickHttp AsQuickHttp(this string str)
     {
-        HttpClient client = new HttpClient(str);
+        QuickHttp client = new QuickHttp(str);
         return client;
     }
     /// <summary>

@@ -1,6 +1,10 @@
 ﻿using FyLib;
+using FyLib.NicControl;
+
+using Newtonsoft.Json.Linq;
 
 using System.Diagnostics;
+using System.Management;
 
 namespace FyLibTest
 {
@@ -13,24 +17,19 @@ namespace FyLibTest
             //winhttp.Domain = "https://www.qq.com";
             //winhttp.GetAsString();
             //Debug.WriteLine(winhttp.Response.Version);
-            demo();
+           var t =  demo();
+            t.Wait();
         }
-        static async void demo()
+        static async Task demo()
         {
-            Debug.WriteLine(IPHelper.GetNetIP());
-            Debug.WriteLine(IPHelper.GetLocalIP());
-            string ip = IPHelper.GetLocalIP();
-            var ls = IPHelper.GetAllAddress(ip);
-            foreach (var item in ls)
-            {
-                //Debug.WriteLine(item);
-            }
-            ls = IPHelper.GetAllAddress("192.168.3.21","192.168.3.200");
-            foreach (var item in ls)
-            {
-                Debug.WriteLine(item);
-            }
-            Debug.WriteLine("c:\\1.png".GetLength());
+            Winhttp winhttp = new Winhttp();
+            winhttp.HttpVersion2 = true;
+            winhttp.Redirect = false;
+            winhttp.Domain = "http://baidu.com";
+            var result = winhttp.PostAsString("/", null);
+            Debug.WriteLine(result);
+            Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject( winhttp.Response.RequestMessage));
+            Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(winhttp.Response));
         }
     }
 }

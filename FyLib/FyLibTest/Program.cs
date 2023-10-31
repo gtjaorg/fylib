@@ -17,20 +17,12 @@ namespace FyLibTest
         }
         static async void demo()
         {
-            Debug.WriteLine(IPHelper.GetNetIP());
-            Debug.WriteLine(IPHelper.GetLocalIP());
-            string ip = IPHelper.GetLocalIP();
-            var ls = IPHelper.GetAllAddress(ip);
-            foreach (var item in ls)
-            {
-                //Debug.WriteLine(item);
-            }
-            ls = IPHelper.GetAllAddress("192.168.3.21","192.168.3.200");
-            foreach (var item in ls)
-            {
-                Debug.WriteLine(item);
-            }
-            Debug.WriteLine("c:\\1.png".GetLength());
+            Debug.WriteLine(Other.RandInt());
+            Debug.WriteLine(Other.RandInt());
+            Debug.WriteLine(Other.RandInt());
+            Debug.WriteLine(Other.RandInt());
+            Debug.WriteLine(Other.RandInt());
+            Debug.WriteLine(Other.RandInt());
         }
     }
 }

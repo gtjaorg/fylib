@@ -2,13 +2,17 @@
 
 // Other
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading;
+
+using static HashHelper;
 
 public static class Other
 {
@@ -362,6 +366,55 @@ public static class Other
         return (CPU + GetBaseBoardID() + GetDisplayName() + GetHardDiskID()).MD5();
     }
 
+    /// <summary>
+    /// 获取主板序列号
+    /// </summary>
+    /// <returns></returns>
+    public static string? GetBaseBordID2()
+    {
+        ManagementClass mc = new ManagementClass("Win32_ComputerSystemProduct");
+        foreach (ManagementObject mo in mc.GetInstances())
+        {
+            if (mo["UUID"] != null)
+            {
+                string? str = mo["UUID"].ToString();
+                return str ;
+            }
+        }
+        return null;
+    }
+    /// <summary>
+    /// 获取CPU序列号
+    /// </summary>
+    /// <returns></returns>
+    public static string? GetCpuID()
+    {
+        ManagementClass mc = new ManagementClass("Win32_Processor");
+        foreach (ManagementObject mo in mc.GetInstances())
+        {
+            if (mo["ProcessorId"] != null)
+            {
+                string? str = mo["ProcessorId"].ToString();
+                return str;
+            }
+        }
+        return null;
+    }   
+    /// <summary>
+    /// 获取机器码2
+    /// </summary>
+    /// <returns></returns>
+    public static string GetMachineCode2()
+    {
+        string? cpu = GetCpuID();
+        if(cpu==null) throw new Exception("获取CPU序列号失败");
+        string? bord = GetBaseBordID2();
+        if (bord == null) throw new Exception("获取主板序列号失败");
+        string disk = GetHardDiskID();
+        if(disk.IsNullOrEmpty()) throw new Exception("获取硬盘序列号失败");
+        CRC32 crc = new CRC32();
+        return $"{HashHelper.Crc32_(cpu)}-{HashHelper.Crc32_(bord)}-{HashHelper.Crc32_(disk)}";
+    }
     /// <summary>
     /// 取随机网卡
     /// </summary>

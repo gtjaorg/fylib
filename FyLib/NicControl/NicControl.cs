@@ -2,6 +2,7 @@
 
 // FyLib.NicControl.NicControl
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Management;
 
 using FyLib.NicControl;
@@ -27,13 +28,14 @@ namespace FyLib.NicControl
         /// </summary>
         public static void GetList()
         {
-            SelectQuery query = new SelectQuery("select * from Win32_NetworkAdapter where PhysicalAdapter=True");
+            SelectQuery query = new SelectQuery("select * from Win32_NetworkAdapter where PhysicalAdapter=True and AdapterType!=null");
             ManagementObjectCollection managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
             NicList.Clear();
             if (managementObjectCollection.Count > 0)
             {
                 foreach (ManagementBaseObject item in managementObjectCollection)
                 {
+                    Debug.WriteLine(item["AdapterType"]);
                     NicInfo nicInfo = new NicInfo();
                     if (item["NetConnectionID"] != null)
                     {
