@@ -5,7 +5,9 @@ VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FyLib", "FyLib\FyLib.csproj", "{527E52C8-4D66-4B2A-88D5-089B50AA9BB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FyLibTest", "FyLibTest\FyLibTest.csproj", "{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FyLibTest", "FyLibTest\FyLibTest.csproj", "{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfApp1", "WpfApp1\WpfApp1.csproj", "{146EFFA1-2C00-4D66-99D5-79E68431427D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{146EFFA1-2C00-4D66-99D5-79E68431427D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{146EFFA1-2C00-4D66-99D5-79E68431427D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{146EFFA1-2C00-4D66-99D5-79E68431427D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{146EFFA1-2C00-4D66-99D5-79E68431427D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -29,7 +29,7 @@ namespace FyLib.Http
         private string _accept = "application/json";
         private Map<string, string> _headers = new Map<string, string>();
         private bool _allowAutoRedirect = true;
-        private Map<string,string> _querys = new Map<string, string>();
+        private Map<string, string> _querys = new Map<string, string>();
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -38,7 +38,8 @@ namespace FyLib.Http
         {
             _url = new Uri(domain);
             _path = _url.LocalPath;
-            _url.Query.Split("&").Select(a => a.Split("=")).ToList().ForEach(a => _querys.Add(a[0], a[1]));
+            if (!_url.Query.IsNullOrEmpty())
+                _url.Query.Split("&").Select(a => a.Split("=")).ToList().ForEach(a => _querys.Add(a[0], a[1]));
         }
         /// <summary>
         /// 设置超时, 默认10000
@@ -89,7 +90,7 @@ namespace FyLib.Http
         /// <returns></returns>
         public QuickHttp addQuery(string key, string value)
         {
-            _querys.Add(key, value);    
+            _querys.Add(key, value);
             return this;
         }
         /// <summary>
@@ -149,7 +150,7 @@ namespace FyLib.Http
         /// <returns>string</returns>
         public async Task<string?> GetAsStringAsync()
         {
-            var result = await GetAsync();
+            var result = await GetAsync().ConfigureAwait(false);
             this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
             {
@@ -188,7 +189,7 @@ namespace FyLib.Http
         public async Task<JToken?> GetAsJsonAsync()
         {
             var str = await GetAsStringAsync();
-            if (str==null || str.IsNullOrEmpty()) return null;
+            if (str == null || str.IsNullOrEmpty()) return null;
             return JToken.Parse(str);
         }
         /// <summary>
@@ -204,7 +205,7 @@ namespace FyLib.Http
         }
         #endregion
         #region Post
-        private Task<HttpResponseMessage> PostAsync( HttpContent? content=null)
+        private Task<HttpResponseMessage> PostAsync(HttpContent? content = null)
         {
             PackClient();
             HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Post, _path);
@@ -214,6 +215,7 @@ namespace FyLib.Http
                 msg.Headers.Add(item.Key, item.Value);
             }
             var result = _client.SendAsync(msg);
+            result.ConfigureAwait(false);
             return result;
         }
         /// <summary>
@@ -248,7 +250,7 @@ namespace FyLib.Http
         /// <param name="JToken"></param>
         /// <param name="encoding"></param>
         /// <returns>HttpResponseMessage</returns>
-        public async Task<HttpResponseMessage> PostAsync( JToken JToken, Encoding? encoding = null)
+        public async Task<HttpResponseMessage> PostAsync(JToken JToken, Encoding? encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
             JsonSerializerSettings val = new JsonSerializerSettings
@@ -257,7 +259,7 @@ namespace FyLib.Http
             };
             if (JToken == null) JToken = JToken.Parse("{}");
             string str = JsonConvert.SerializeObject(JToken, val);
-            var content = new StringContent(str, encoding,MediaTypeHeaderValue.Parse("application/json"));
+            var content = new StringContent(str, encoding, MediaTypeHeaderValue.Parse("application/json"));
             var result = await PostAsync(content);
             return result;
         }
@@ -268,7 +270,7 @@ namespace FyLib.Http
         /// <returns>HttpResponseMessage</returns>
         public async Task<HttpResponseMessage> PostAsync(byte[] bytes)
         {
-            if(bytes==null) bytes = new byte[0];
+            if (bytes == null) bytes = new byte[0];
             var content = new ByteArrayContent(bytes);
             var result = await PostAsync(content);
             return result;
@@ -281,7 +283,7 @@ namespace FyLib.Http
         /// <returns>string</returns>
         public async Task<string?> PostAsStringAsync(string body, Encoding? encoding = null)
         {
-            var result = await PostAsync(body,encoding);
+            var result = await PostAsync(body, encoding);
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 return null;
@@ -425,7 +427,7 @@ namespace FyLib.Http
         /// <param name="body"></param>
         /// <param name="encoding"></param>
         /// <returns>Byte[]</returns>
-        public async Task<byte[]?> PostAsBytesAsync(string body , Encoding? encoding = null)
+        public async Task<byte[]?> PostAsBytesAsync(string body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
@@ -550,13 +552,13 @@ namespace FyLib.Http
             string query = string.Join("&", _querys.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (query.StartsWith("?"))
             {
-                _path +=  query;
+                _path += query;
             }
             else
             {
                 _path += "?" + query;
             }
-            
+
         }
     }
 }

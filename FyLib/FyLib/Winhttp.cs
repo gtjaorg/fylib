@@ -122,7 +122,7 @@ public class Winhttp
         MakeHeader();
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
         MakeRequest(httpRequestMessage);
-        var response = await client.SendAsync(httpRequestMessage);
+        var response = await client.SendAsync(httpRequestMessage).ConfigureAwait(false);
         Response = response;
         StatusCode = response.StatusCode;
         return response;
@@ -276,7 +276,8 @@ public class Winhttp
         {
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(body, val), Encoding.UTF8, ContentType);
         }
-        HttpResponseMessage httpResponseMessage = (Response = await client.SendAsync(httpRequestMessage));
+        HttpResponseMessage httpResponseMessage = await client.SendAsync(httpRequestMessage).ConfigureAwait(false);
+        Response = httpResponseMessage;
         var result  = await httpResponseMessage.Content.ReadAsStringAsync();
         return result;
 
@@ -378,6 +379,7 @@ public class Winhttp
         MakeHeader();
         HttpRequestMessage request = (Request = new HttpRequestMessage(HttpMethod.Head, path));
         Task<HttpResponseMessage> task = client.SendAsync(request);
+        task.ConfigureAwait(false);
         task.Wait();
         StatusCode = (Response = task.Result).StatusCode;
         return StatusCode == HttpStatusCode.OK;
@@ -385,8 +387,6 @@ public class Winhttp
 
     private void MakeHeader()
     {
-        checked
-        {
             if (client == null)
             {
                 SocketsHttpHandler handler = new SocketsHttpHandler();
@@ -395,11 +395,10 @@ public class Winhttp
                 handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
                 client = new HttpClient(handler);
                 client.BaseAddress = new Uri(domain);
-                client.Timeout = Other.GetTimeSpan(Timeout * 1000);
+                client.Timeout = Other.GetTimeSpan(Timeout*1000);
                 client.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
                 client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
                 client.DefaultRequestHeaders.Accept.TryParseAdd(Accept);
             }
-        }
     }
 }
