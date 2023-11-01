@@ -144,8 +144,8 @@ public class Winhttp
     /// <returns></returns>
     public async Task<string> GetAsStringAsync(string path)
     {
-        var response = await GetResponseAsync(path);
-        var result = await response.Content.ReadAsStringAsync();
+        var response = await GetResponseAsync(path).ConfigureAwait(false);
+        var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         return result;
     }
     /// <summary>
@@ -155,8 +155,8 @@ public class Winhttp
     /// <returns></returns>
     public async Task<byte[]> GetAsBytesAsync(string path)
     {
-        var response = await GetResponseAsync(path);
-        var result = await response.Content.ReadAsByteArrayAsync();
+        var response = await GetResponseAsync(path).ConfigureAwait(false);
+        var result = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
         return result;
     }
     /// <summary>
@@ -196,7 +196,7 @@ public class Winhttp
     /// <returns></returns>
     public async Task<JObject> GetAsJsonAsync(string path)
     {
-        var result = await GetAsStringAsync(path);
+        var result = await GetAsStringAsync(path).ConfigureAwait(false);
         try
         {
             return JObject.Parse(result);
@@ -234,7 +234,7 @@ public class Winhttp
     /// <returns></returns>
     public async Task<T> GetAsObjectAsync<T>(string path)
     {
-        string asString = await GetAsStringAsync(path);
+        string asString = await GetAsStringAsync(path).ConfigureAwait(false);
         try
         {
             return JsonConvert.DeserializeObject<T>(asString);
@@ -278,7 +278,7 @@ public class Winhttp
         }
         HttpResponseMessage httpResponseMessage = await client.SendAsync(httpRequestMessage).ConfigureAwait(false);
         Response = httpResponseMessage;
-        var result  = await httpResponseMessage.Content.ReadAsStringAsync();
+        var result  = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
         return result;
 
     }
@@ -290,8 +290,9 @@ public class Winhttp
     /// <returns></returns>
     public string PostAsString(string path, object body)
     {
-        var result = PostAsStringAsync(path, body).Result;
-        return result;
+        var result = PostAsStringAsync(path, body);
+        result.Wait();
+        return result.Result;
     }
     /// <summary>
     /// Post
@@ -302,7 +303,7 @@ public class Winhttp
     /// <returns>Object</returns>
     public async Task< T> PostAsObjectAsync<T>(string path, object body)
     {
-        string text = await PostAsStringAsync(path, body);
+        string text = await PostAsStringAsync(path, body).ConfigureAwait(false);
         try
         {
             return JsonConvert.DeserializeObject<T>(text);
@@ -339,7 +340,7 @@ public class Winhttp
     /// <returns>JObject</returns>
     public async Task< JObject> PostAsJsonAsync(string path, object body)
     {
-        string text = await PostAsStringAsync(path, body);
+        string text = await PostAsStringAsync(path, body).ConfigureAwait(false);
         try
         {
             return JObject.Parse(text);
@@ -378,10 +379,8 @@ public class Winhttp
     {
         MakeHeader();
         HttpRequestMessage request = (Request = new HttpRequestMessage(HttpMethod.Head, path));
-        Task<HttpResponseMessage> task = client.SendAsync(request);
-        task.ConfigureAwait(false);
-        task.Wait();
-        StatusCode = (Response = task.Result).StatusCode;
+        var responseMessage = client.Send(request);
+        StatusCode = (Response = responseMessage).StatusCode;
         return StatusCode == HttpStatusCode.OK;
     }
 

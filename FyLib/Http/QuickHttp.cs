@@ -150,7 +150,8 @@ namespace FyLib.Http
         /// <returns>string</returns>
         public async Task<string?> GetAsStringAsync()
         {
-            var result = await GetAsync().ConfigureAwait(false);
+            var result = await GetAsync();
+            
             this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
             {
