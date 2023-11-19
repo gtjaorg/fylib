@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,6 +17,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml;
+using System.Xml.Serialization;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace WpfApp1
 {
@@ -29,31 +38,337 @@ namespace WpfApp1
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            
+            string filename = @"C:\Users\Administrator\Desktop\新建文件夹\uidump.xml";
+            string str = System.IO.File.ReadAllText(filename);
+            var temp = DeserializeFromXml(str);
+            var t = temp.TextContains("淘").FirstOrDefault();
+            Debug.WriteLine(t.Rect.CenterY);
+        }
+        static Hierarchy DeserializeFromXml(string xml)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(Hierarchy));
+            using (StringReader reader = new StringReader(xml))
+            {
+                return (Hierarchy)serializer.Deserialize(reader);
+            }
+        }
 
-            Winhttp http = new Winhttp();
-            http.Domain = "https://book.lu.ink";
-            http.HttpVersion2 = false;
-            http.ContentType = "application/x-www-form-urlencoded";
-            http.Accept = "text/html, application/xhtml+xml, */*";
-            http.Headers.Add("Version", "1.1.3");
-            var body = "version=1.1.3&appid=23628&secretkey=FC9B7E979AA9118AB6EBBE0D939B3B2F&wtype=1&sign=17997b93114327168d39f807841a509d&timestamp=1698816071076&data=141F11C6AB584BE5DCA8FE6174EA8B96FC72ACD8BBF99BDFC1AF3FAABB089671F0315920B5F6007D022A32947CEDF8D0A693FC520618122567C427308D6EA2DBEEC2951A99CD9A142E3A5F9EAADEA16A4D31135F73903231761FFF4E6A12D352FCC7260BFE1F18275A44A565F4ACAA3FD1250E18CBA73E826529784CA06DDE71086592C3C9C395CCEF91AEC847CC45AD58C51CE74FCEEF56E23CBD744E105AA8";
-            var result =await  http.PostAsJsonAsync("/webgateway.html", body);
-            Debug.WriteLine(result);
+    }
+    public static class HierarchyHelper
+    {
+        /// <summary>
+        /// 根据Text查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchText"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> Text(this Hierarchy hierarchy, string searchText)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithText(node.Children ?? new List<Node>(), searchText)))
+                .Where(node => node.Text == searchText);
+        }
+        /// <summary>
+        /// 根据Text模糊查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchText"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> TextContains(this Hierarchy hierarchy, string searchText)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(ContainsText(node.Children ?? new List<Node>(), searchText)))
+                .Where(node => node.Text.Contains(searchText));
+        }
+        /// <summary>
+        /// 根据Package查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchPackage"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> Package(this Hierarchy hierarchy, string searchPackage)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithPackage(node.Children ?? new List<Node>(), searchPackage)))
+                .Where(node => node.Package == searchPackage);
+        }
+        /// <summary>
+        /// 根据Class查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchClass"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> Class(this Hierarchy hierarchy, string searchClass)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithClass(node.Children ?? new List<Node>(), searchClass)))
+                .Where(node => node.Class == searchClass);
+        }
+        /// <summary>
+        /// 根据包含的Package查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchPackage"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> PackageContains(this Hierarchy hierarchy, string searchPackage)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithPackageContains(node.Children ?? new List<Node>(), searchPackage)))
+                .Where(node => node.Package.Contains(searchPackage));
+        }
+        /// <summary>
+        /// 根据包含的Class查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchClass"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> ClassContains(this Hierarchy hierarchy, string searchClass)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithClassContains(node.Children ?? new List<Node>(), searchClass)))
+                .Where(node => node.Class.Contains(searchClass));
+        }
+        /// <summary>
+        /// 根据ResourceId查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchResourceId"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> ResourceId(this Hierarchy hierarchy, string searchResourceId)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithResourceId(node.Children ?? new List<Node>(), searchResourceId)))
+                .Where(node => node.ResourceId == searchResourceId);
+        }
+        /// <summary>
+        /// 根据包含的ResourceId查找节点
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="searchResourceId"></param>
+        /// <returns></returns>
+        public static IEnumerable<Node> ResourceIdContains(this Hierarchy hierarchy, string searchResourceId)
+        {
+            IEnumerable<Node> nodes = hierarchy.RootNode.Children;
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithResourceIdContains(node.Children ?? new List<Node>(), searchResourceId)))
+                .Where(node => node.ResourceId.Contains(searchResourceId));
+        }
 
+        #region 私有方法
+        private static IEnumerable<Node> FindNodesWithPackage(IEnumerable<Node> nodes, string searchPackage)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithPackage(node.Children ?? new List<Node>(), searchPackage)))
+                .Where(node => node.Package == searchPackage);
+        }
+        private static IEnumerable<Node> FindNodesWithClass(IEnumerable<Node> nodes, string searchClass)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithClass(node.Children ?? new List<Node>(), searchClass)))
+                .Where(node => node.Class == searchClass);
+        }
+        private static IEnumerable<Node> FindNodesWithPackageContains(IEnumerable<Node> nodes, string searchPackage)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithPackageContains(node.Children ?? new List<Node>(), searchPackage)))
+                .Where(node => node.Package.Contains(searchPackage));
+        }
+        private static IEnumerable<Node> FindNodesWithClassContains(IEnumerable<Node> nodes, string searchClass)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithClassContains(node.Children ?? new List<Node>(), searchClass)))
+                .Where(node => node.Class.Contains(searchClass));
+        }
+        private static IEnumerable<Node> ContainsText(IEnumerable<Node> nodes, string searchText)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(ContainsText(node.Children ?? new List<Node>(), searchText)))
+                .Where(node => node.Text.Contains(searchText));
+        }
+        private static IEnumerable<Node> FindNodesWithText(IEnumerable<Node> nodes, string searchText)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithText(node.Children ?? new List<Node>(), searchText)))
+                .Where(node => node.Text == searchText);
+        }
+        private static IEnumerable<Node> FindNodesWithResourceId(IEnumerable<Node> nodes, string searchResourceId)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithResourceId(node.Children ?? new List<Node>(), searchResourceId)))
+                .Where(node => node.ResourceId == searchResourceId);
+        }
+        private static IEnumerable<Node> FindNodesWithResourceIdContains(IEnumerable<Node> nodes, string searchResourceId)
+        {
+            // 使用 SelectMany 来扁平化节点列表，并递归搜索每个子节点
+            return nodes
+                .SelectMany(node =>
+                    new[] { node }.Concat(FindNodesWithResourceIdContains(node.Children ?? new List<Node>(), searchResourceId)))
+                .Where(node => node.ResourceId.Contains(searchResourceId));
+        }
+        #endregion
+    }
 
+    [XmlRoot(ElementName = "hierarchy")]
+    public class Hierarchy
+    {
+        [XmlAttribute(AttributeName = "rotation")]
+        public int Rotation { get; set; }
 
-            http = new Winhttp();
-            http.Domain = "https://book.lu.ink";
-            http.HttpVersion2 = false;
-            http.ContentType = "application/x-www-form-urlencoded";
-            http.Accept = "text/html, application/xhtml+xml, */*";
-            http.Headers.Add("Version", "1.1.3");
-            body = "version=1.1.3&appid=23628&secretkey=FC9B7E979AA9118AB6EBBE0D939B3B2F&wtype=3&sign=368e39bd4746fbe148c8a457d83c46b0&timestamp=1698815904028&data=3E68A08A5CBA05B711DD0084C0842DDBB5C0459ED8AFAF98FF491BBDB6B92A24A5A1948447866EE2F5721E1684CEE088856DF93195D7B467DFFB52808865CC9BBFB2FFB7DC748780C348BB9DD04D85B9F745F2D1EA58D3C67A7BAE02B72DDC48122020AFE156947A78538424B2C734B95E79C87DA7D74D9DF38690C5D583991DA8749201FEB5AC95A5F71483021276F1A0B053F1A2B5585548DB7F744E853D32A03E85D4961AD4A7432B90F0322B937A3F22661E5ECACE494D9C067B73994E76C1EF3BFC8CD95EBE1864D54141DFEEF3FD6B38C7CDD116BF9CA59CDDF69417DD1500B5185E9C97D6653EC7D4F19DA086293D9BB5B5A55E96B5C55B8AEEE2310DC9541887258DBB040295A58BBE4FAF605B5F4013A7630EA87A913B98A723E2E281AAD991C91E20A3AF30888F742C08BF11B030F81D9FD4A9A6A33EAA60769BD02FD7BC698353BD72F439720EC2EDEA411A42D8E753E1F48AB0C8E5A7DC8357AE4E09CFACB80343976D7A9D3E85738A8AAE0AC8DC22FCC07BDC745083FBA1EC88";
-            result = await  http.PostAsJsonAsync("/webgateway.html", body);
-            Debug.WriteLine(result);
+        [XmlElement(ElementName = "node")]
+        public Node RootNode { get; set; }
+    }
 
-            this.Title = "123123";
+    public class Node
+    {
+        [XmlAttribute(AttributeName = "index")]
+        public int Index { get; set; }
+
+        [XmlAttribute(AttributeName = "text")]
+        public string Text { get; set; }
+
+        [XmlAttribute(AttributeName = "class")]
+        public string Class { get; set; }
+
+        [XmlAttribute(AttributeName = "resource-id")]
+        public string ResourceId { get; set; }
+
+        [XmlAttribute(AttributeName = "package")]
+        public string Package { get; set; }
+
+        [XmlAttribute(AttributeName = "content-desc")]
+        public string ContentDesc { get; set; }
+
+        [XmlAttribute(AttributeName = "checkable")]
+        public bool Checkable { get; set; }
+
+        [XmlAttribute(AttributeName = "checked")]
+        public bool Checked { get; set; }
+
+        [XmlAttribute(AttributeName = "clickable")]
+        public bool Clickable { get; set; }
+
+        [XmlAttribute(AttributeName = "enabled")]
+        public bool Enabled { get; set; }
+
+        [XmlAttribute(AttributeName = "focusable")]
+        public bool Focusable { get; set; }
+
+        [XmlAttribute(AttributeName = "focused")]
+        public bool Focused { get; set; }
+
+        [XmlAttribute(AttributeName = "scrollable")]
+        public bool Scrollable { get; set; }
+
+        [XmlAttribute(AttributeName = "long-clickable")]
+        public bool LongClickable { get; set; }
+
+        [XmlAttribute(AttributeName = "password")]
+        public bool Password { get; set; }
+
+        [XmlAttribute(AttributeName = "selected")]
+        public bool Selected { get; set; }
+
+        [XmlAttribute(AttributeName = "bounds")]
+        public string Bounds { get; set; }
+
+        [XmlElement(ElementName = "node")]
+        public List<Node> Children { get; set; }
+        /// <summary>
+        /// 矩形
+        /// </summary>
+        public Rect Rect
+        {
+            get
+            {
+                return ParseBounds(this.Bounds);
+            }
+        }
+
+        private Rect ParseBounds(string boundsValue)
+        {
+            // 使用正则表达式提取坐标值
+            MatchCollection matches = Regex.Matches(boundsValue, @"(\d+)");
+
+            if (matches.Count == 4)
+            {
+                int x1 = int.Parse(matches[0].Value);
+                int y1 = int.Parse(matches[1].Value);
+                int x2 = int.Parse(matches[2].Value);
+                int y2 = int.Parse(matches[3].Value);
+
+                int x = Math.Min(x1, x2);
+                int y = Math.Min(y1, y2);
+                int width = Math.Abs(x2 - x1);
+                int height = Math.Abs(y2 - y1);
+
+                return new Rect(x, y, width, height);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid Bounds format");
+            }
+        }
+    }
+    public struct Rect
+    {
+        public int X { get; }
+        public int Y { get; }
+        public int Width { get; }
+        public int Height { get; }
+
+        public Rect(int x, int y, int width, int height)
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+
+        public int CenterX
+        {
+            get { return X + Width / 2; }
+        }
+
+        public int CenterY
+        {
+            get { return Y + Height / 2; }
         }
     }
 }
