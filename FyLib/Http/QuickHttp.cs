@@ -25,7 +25,7 @@ namespace FyLib.Http
         private string _path;
         private HttpClient _client;
         private int _timeOut = 10000;
-        private string _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36 Edg/96.0.1054.62";
+        private string _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0";
         private string _accept = "application/json";
         private Map<string, string> _headers = new Map<string, string>();
         private bool _allowAutoRedirect = true;
@@ -228,9 +228,21 @@ namespace FyLib.Http
         public async Task<HttpResponseMessage> PostAsync(string body, Encoding? encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
-            var content = new StringContent(body, encoding);
-            var result = await PostAsync(content);
-            return result;
+            try
+            {
+                JObject.Parse(body);
+                var content = new StringContent(body, encoding);
+                var result = await PostAsync(content);
+                return result;
+            }
+            catch (Exception)
+            {
+                var content = new StringContent(body, encoding, "application/x-www-form-urlencoded");
+                var result = await PostAsync(content);
+                return result;
+            }
+
+
         }
         /// <summary>
         /// Post Object
@@ -550,6 +562,7 @@ namespace FyLib.Http
             _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
             _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
             _client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
+            
             string query = string.Join("&", _querys.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (query.StartsWith("?"))
             {
