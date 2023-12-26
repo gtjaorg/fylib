@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>.net7</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>1.0.8</Version>
+    <Version>1.0.9</Version>
     <Authors>枫影傲然</Authors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

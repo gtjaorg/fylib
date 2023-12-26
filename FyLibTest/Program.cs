@@ -5,22 +5,73 @@ using Newtonsoft.Json.Linq;
 
 using System.Diagnostics;
 using System.Management;
+using System.Net.Sockets;
+using System.Net;
 
 using static System.Net.WebRequestMethods;
+using System.Formats.Tar;
 
 namespace FyLibTest
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             //Winhttp winhttp = new Winhttp();
             //winhttp.HttpVersion2 = true;
             //winhttp.Domain = "https://www.qq.com";
             //winhttp.GetAsString();
             //Debug.WriteLine(winhttp.Response.Version);
-           var t =  demo();
-            t.Wait();
+            var t = IPHelper.GetLocalIPAddressBase();
+            Debug.WriteLine(t);
+            Debug.WriteLine(IPHelper.GetLocalIP());
+            Debug.WriteLine(await IPHelper.IsHostPingedAsync("192.168.3.3", 300));
+
+            string localIpBase = IPHelper.GetLocalIPAddressBase();
+            int port = 5555;
+            int timeout = 1000; // Timeout in milliseconds
+            List<Task<bool>> tasks = new List<Task<bool>>();
+            List<string> IPs = new List<string>();
+            List<string> SuccessIP = new List<string>();
+
+            Console.WriteLine($"Starting scan for devices with open port {port}...");
+
+            for (int i = 1; i <= 254; i++)
+            {
+                string ip = $"{localIpBase}.{i}";
+                tasks.Add(IPHelper.IsHostPingedAsync(ip, 300));
+                IPs.Add(ip);
+            }
+            bool[] results = await Task.WhenAll(tasks);
+            tasks.Clear();
+            for (int i = 0; i < results.Length; i++)
+            {
+                if (results[i])
+                {
+                    SuccessIP.Add(IPs[i]);
+                    tasks.Add(IPHelper.IsPortOpenAsync(IPs[i], port, timeout));
+                    Console.WriteLine($"{IPs[i]} is online");
+                }
+
+            }
+            results = await Task.WhenAll(tasks);
+            // 等待所有任务完成
+
+            // 输出开放端口的IP地址
+            for (int i = 0; i < results.Length; i++)
+            {
+                if (results[i])
+                {
+                    Console.WriteLine($"Device found with open port {port} at: {localIpBase}.{i + 1}");
+                }
+                else
+                {
+                    Console.WriteLine($"Device not found with open port {port} at: {localIpBase}.{i + 1}");
+                }
+            }
+
+            Console.WriteLine("Scan complete.");
+            Console.Read();
         }
         static async Task demo()
         {
@@ -47,5 +98,6 @@ namespace FyLibTest
             Debug.WriteLine(result);
 
         }
+
     }
 }

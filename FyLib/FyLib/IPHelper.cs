@@ -11,7 +11,10 @@ using System.Threading.Tasks;
 
 namespace FyLib
 {
-    public static class IPHelper
+    /// <summary>
+    /// IP操作类
+    /// </summary>
+    public static partial class IPHelper
     {
         /// <summary>
         /// 判断是否IP地址
@@ -24,7 +27,7 @@ namespace FyLib
             {
                 return false;
             }
-            if (!Regex.IsMatch(IP, @"\d{1,3}(\.\d{1,3}){3}"))
+            if (!MyRegex().IsMatch(IP))
             {
                 return false;
             }
@@ -53,8 +56,8 @@ namespace FyLib
 
             // 根据IPv4地址范围进行判断，你也可以根据需要添加IPv6的判断
             if (ipBytes[0] == 10 ||
-                (ipBytes[0] == 172 && ipBytes[1] >= 16 && ipBytes[1] <= 31) ||
-                (ipBytes[0] == 192 && ipBytes[1] == 168))
+                ipBytes[0] == 172 && ipBytes[1] >= 16 && ipBytes[1] <= 31 ||
+                ipBytes[0] == 192 && ipBytes[1] == 168)
             {
                 return true;
             }
@@ -173,5 +176,88 @@ namespace FyLib
             }
             return ls;
         }
+        /// <summary>
+        /// 测试通讯
+        /// </summary>
+        /// <param name="host">IP地址</param>
+        /// <param name="timeout">毫秒</param>
+        /// <returns></returns>
+        public static async Task<bool> IsHostPingedAsync(string host, int timeout = 200)
+        {
+            using Ping ping = new();
+            try
+            {
+                // 发送ping请求，包含超时设置
+                PingReply reply = await ping.SendPingAsync(host, timeout);
+                return reply.Status == IPStatus.Success;
+            }
+            catch (PingException)
+            {
+                // Ping请求失败，可能是因为超时或其他网络错误
+                return false;
+            }
+        }
+        /// <summary>
+        /// 获取本地IP段, 192.168.0
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public  static string GetLocalIPAddressBase()
+        {
+            // 创建一个Socket，指定使用IPv4，类型为Dgram(数据报，UDP), 协议为0（自动选择）
+            using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, 0);
+            // 连接到一个远程端点，这里使用的是谷歌公共DNS服务器的IP和一个不常用的端口
+            // 这里的目的不是要发送数据，而是为了让操作系统选择一个用于外出连接的本地IP地址
+            socket.Connect("8.8.8.8", 65530);
+
+            // 获取本地端点的信息，这应该是操作系统为了连接到远程端点所选择的本地IP地址
+            IPEndPoint? endPoint = socket.LocalEndPoint as IPEndPoint;
+
+            // 获取本地IP地址
+            string? localIP = (endPoint?.Address.ToString()) ?? throw new InvalidOperationException("Local IP Address Not Found!");
+
+            // 找到IP地址字符串中最后一个'.'的位置
+            int lastIndex = localIP.LastIndexOf('.');
+
+            // 获取基础IP地址，即去掉最后一部分的IP地址
+            return localIP[..lastIndex];
+        }
+        /// <summary>
+        /// 端口检测
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        public static async Task<bool> IsPortOpenAsync(string host, int port, int timeout)
+        {
+            var b = await IsHostPingedAsync(host);
+            if (!b)
+            {
+                return false;
+            }
+            using var client = new TcpClient();
+            try
+            {
+                var task = client.ConnectAsync(host, port);
+                if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
+                {
+                    return client.Connected;
+                }
+                else
+                {
+                    // Timeout
+                    return false;
+                }
+            }
+            catch
+            {
+                // Exception means we couldn't connect (port is closed or host is not reachable)
+                return false;
+            }
+        }
+
+        [GeneratedRegex("\\d{1,3}(\\.\\d{1,3}){3}")]
+        private static partial Regex MyRegex();
     }
 }
