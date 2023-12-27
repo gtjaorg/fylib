@@ -265,9 +265,15 @@ public static class Other
             string result = "";
             using (ManagementObjectCollection.ManagementObjectEnumerator managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
             {
-                if (managementObjectEnumerator.MoveNext())
+                while (managementObjectEnumerator.MoveNext())
                 {
-                    result = ((ManagementObject)managementObjectEnumerator.Current)["SerialNumber"].ToString().Trim();
+                    var t = ((ManagementObject)managementObjectEnumerator.Current);
+                    if (t["__PATH"].ToString().IndexOf("PHYSICALDRIVE0") >-1)
+                    {
+                        result = t["SerialNumber"].ToString().Trim();
+                        break;
+                    }
+                    result = t["SerialNumber"].ToString().Trim();
                 }
             }
             return result;

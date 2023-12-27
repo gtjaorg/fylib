@@ -26,6 +26,9 @@ namespace FyLibTest
             Debug.WriteLine(t);
             Debug.WriteLine(IPHelper.GetLocalIP());
             Debug.WriteLine(await IPHelper.IsHostPingedAsync("192.168.3.3", 300));
+            Debug.WriteLine(Other.GetMachineCode());
+            return;
+
 
             string localIpBase = IPHelper.GetLocalIPAddressBase();
             int port = 5555;
