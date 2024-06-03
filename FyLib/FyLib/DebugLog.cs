@@ -67,7 +67,7 @@ public class DebugLog
         }
         if (m_bShowThread)
         {
-            stringBuilder.Append("线程:" + Api.GetCurrentThreadId());
+            stringBuilder.Append("线程:" + kernel32.GetCurrentThreadId());
             stringBuilder.Append(" ");
         }
         if (tag == "")

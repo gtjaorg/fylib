@@ -428,7 +428,7 @@ public static class StringHelper
     /// <returns></returns>
     public static string MD5(this string str)
     {
-        MD5CryptoServiceProvider mD5CryptoServiceProvider = new MD5CryptoServiceProvider();
+        var mD5CryptoServiceProvider = System.Security.Cryptography.MD5.Create();
         byte[] bytes = Encoding.Default.GetBytes(str);
         byte[] array = mD5CryptoServiceProvider.ComputeHash(bytes);
         string text = "";
@@ -447,5 +447,14 @@ public static class StringHelper
     {
         DateTime dateTime = new DateTime(1970, 1, 1);
         return Convert.ToString(checked(DateTime.UtcNow.Ticks - dateTime.Ticks) / 10000000);
+    }
+    /// <summary>
+    /// 十六进制文本转十进制
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns></returns>
+    public static int HexToInt(this string str)
+    {
+        return Convert.ToInt32(str, 16);
     }
 }

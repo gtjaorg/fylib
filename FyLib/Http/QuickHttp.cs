@@ -556,10 +556,12 @@ namespace FyLib.Http
             handler.AllowAutoRedirect = _allowAutoRedirect;
             handler.EnableMultipleHttp2Connections = true;
             handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
+            if (_client != null) _client.Dispose();
             _client = new System.Net.Http.HttpClient(handler);
             _client.BaseAddress = _url;
             _client.Timeout = Other.GetTimeSpan(_timeOut);
-            _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
+           var b =  _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
+            Debug.WriteLine(b);
             _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
             _client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
             

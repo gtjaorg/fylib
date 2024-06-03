@@ -1,6 +1,6 @@
 ﻿
 
-// Api
+// kernel32
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -8,9 +8,99 @@ using System.Text;
 /// <summary>
 /// 常用API合集
 /// </summary>
-public static class Api
+public static class kernel32
 {
+    /// <summary>
+    /// 打开进程
+    /// </summary>
+    /// <param name="dwDesiredAccess"></param>
+    /// <param name="bInheritHandle"></param>
+    /// <param name="dwProcessId"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+    /// <summary>
+    /// 读取进程数据
+    /// </summary>
+    /// <param name="hProcess"></param>
+    /// <param name="lpBaseAddress"></param>
+    /// <param name="lpBuffer"></param>
+    /// <param name="nSize"></param>
+    /// <param name="lpNumberOfBytesRead"></param>
+    /// <returns></returns>
 
+    [DllImport("kernel32.dll")]
+    public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out int lpNumberOfBytesRead);
+    /// <summary>
+    /// 写进程数据
+    /// </summary>
+    /// <param name="hProcess"></param>
+    /// <param name="lpBaseAddress"></param>
+    /// <param name="lpBuffer"></param>
+    /// <param name="nSize"></param>
+    /// <param name="lpNumberOfBytesWritten"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll")]
+    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out int lpNumberOfBytesWritten);
+    /// <summary>
+    /// 申请内存
+    /// </summary>
+    /// <param name="hProcess"></param>
+    /// <param name="lpAddress"></param>
+    /// <param name="dwSize"></param>
+    /// <param name="flAllocationType"></param>
+    /// <param name="flProtect"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+    /// <summary>
+    /// 释放内存
+    /// </summary>
+    /// <param name="hProcess"></param>
+    /// <param name="lpAddress"></param>
+    /// <param name="dwSize"></param>
+    /// <param name="dwFreeType"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint dwFreeType);
+
+    /// <summary>
+    /// 表示将要分配的内存页已经分配了物理内存，可以被使用。这是常用的分配类型。
+    /// </summary>
+    public const uint MEM_COMMIT = 0x1000;
+    /// <summary>
+    /// 表示为指定的大小保留了一段地址空间，但尚未分配物理内存。这样做的目的是为了确保在稍后调用 VirtualAllocEx 或 MapViewOfFile 时有足够的地址空间可用。
+    /// </summary>
+    public const uint MEM_RESERVE = 0x2000;
+    /// <summary>
+    /// 表示重置一块已经提交的内存区域，使其回到初始状态。这样做会将内存区域的内容清空。
+    /// </summary>
+    public const uint MEM_RELEASE = 0x8000;
+    /// <summary>
+    /// 表示释放内存页所占用的物理内存，但保留虚拟地址空间。这样做会导致相应的内存页无法被访问。
+    /// </summary>
+    public const uint MEM_DECOMMIT = 0x4000;
+    /// <summary>
+    /// 等待线程
+    /// </summary>
+    /// <param name="hHandle"></param>
+    /// <param name="dwMilliseconds"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll")]
+    public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+    /// <summary>
+    /// 创建远程线程
+    /// </summary>
+    /// <param name="hProcess"></param>
+    /// <param name="lpThreadAttributes"></param>
+    /// <param name="dwStackSize"></param>
+    /// <param name="lpStartAddress"></param>
+    /// <param name="lpParameter"></param>
+    /// <param name="dwCreationFlags"></param>
+    /// <param name="lpThreadId"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
 
     /// <summary>
     /// 获取当前线程ID

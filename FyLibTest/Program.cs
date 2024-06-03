@@ -10,6 +10,11 @@ using System.Net;
 
 using static System.Net.WebRequestMethods;
 using System.Formats.Tar;
+using System;
+using FyLib.FyLib;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text;
+using System.Security.Cryptography.X509Certificates;
 
 namespace FyLibTest
 {
@@ -22,85 +27,174 @@ namespace FyLibTest
             //winhttp.Domain = "https://www.qq.com";
             //winhttp.GetAsString();
             //Debug.WriteLine(winhttp.Response.Version);
-            var t = IPHelper.GetLocalIPAddressBase();
-            Debug.WriteLine(t);
-            Debug.WriteLine(IPHelper.GetLocalIP());
-            Debug.WriteLine(await IPHelper.IsHostPingedAsync("192.168.3.3", 300));
-            Debug.WriteLine(Other.GetMachineCode());
+            //var t = IPHelper.GetLocalIPAddressBase();
+            //Debug.WriteLine(t);
+            //Debug.WriteLine(IPHelper.GetLocalIP());
+            //Debug.WriteLine(await IPHelper.IsHostPingedAsync("192.168.3.3", 300));
+            //Debug.WriteLine(Other.GetMachineCode());
+
+            var ls =  Process.GetProcessesByName("WeChat");
+            if (ls.Length == 0) return;
+            ls = ls.OrderByDescending(a=>a.Id).ToArray();
+            var p = ls[0];
+            var pid = ls[0].Id;
+            var module = p.Modules.Cast<ProcessModule>().Where(a => a.ModuleName == "WeChatWin.dll").FirstOrDefault();
+            if(module == null) return;
+            var baseAddress = module.BaseAddress;
+
+            
+            Debug.WriteLine(baseAddress);
+            RemoteProcess remoteProcess = new() { Process = p};
+            var b = remoteProcess.openProcess();
+            if (!b)
+            {
+                Debug.WriteLine("打开进程失败!");
+                return;
+            }
+
+            #region 获取好友
+            var move = baseAddress + "222F3BC".HexToInt();
+            var endAddress = remoteProcess.readMemory(move);
+            endAddress = endAddress + "48".HexToInt();
+            endAddress = endAddress + "4".HexToInt();
+            var enterAddress = remoteProcess.readMemory(endAddress);
+            Debug.WriteLine(endAddress);
+            var friendCount = remoteProcess.readMemory(endAddress + 4);
+            Debug.WriteLine(friendCount);
+            var leftAddress = remoteProcess.readMemory(enterAddress);
+            var rightAddress = remoteProcess.readMemory(enterAddress + 4);
+            Debug.WriteLine($"{leftAddress} -> {rightAddress}");
+
+
+
+            void readFriend(int left, int right)
+            {
+                WxFriendInfo info = new WxFriendInfo();
+                var add = remoteProcess.readMemory(left + "30".HexToInt());
+                info.id = remoteProcess.readUnicode(add);
+
+                add = remoteProcess.readMemory(left + "44".HexToInt());
+                info.name = remoteProcess.readUnicode(add);
+                add = remoteProcess.readMemory(left + "58".HexToInt());
+                info.v3 = remoteProcess.readUnicode(add);
+                add = remoteProcess.readMemory(left + "78".HexToInt());
+                info.tag = remoteProcess.readUnicode(add);
+                add = remoteProcess.readMemory(left + "8C".HexToInt());
+                info.nick = remoteProcess.readUnicode(add);
+                add = remoteProcess.readMemory(left + "11C".HexToInt());
+                info.head = remoteProcess.readUnicode(add);
+                Debug.WriteLine(info);
+                left = remoteProcess.readMemory(left);
+                if (left != right)
+                {
+                    readFriend(left, right);
+                }
+            }
+            readFriend(leftAddress, rightAddress);
+            #endregion
+        
+
+            #region 打开内置浏览器
+
+            
+            var call1 = baseAddress + "701DC0".HexToInt();
+            var call2 = baseAddress + "C34EC0".HexToInt();
+            var callAddress = remoteProcess.VirtualAllocEx();
+            remoteProcess.writeMemory(callAddress, (int)call1);
+            remoteProcess.writeMemory(callAddress+4, (int)call2);
+
+            var urlAddress = remoteProcess.VirtualAllocEx();
+            string url = "https://mp.weixin.qq.com/s?__biz=MzI2OTA3MTE3OQ==&mid=2651439404&idx=1&sn=b4cbfddca0622305a9f39107175f9793&scene=0#wechat_redirect";
+            var bin = url.GetBytes(Encoding.Unicode);
+            remoteProcess.writeMemory(urlAddress , (int)urlAddress+24);
+            remoteProcess.writeMemory(urlAddress + 4, url.Length);
+            remoteProcess.writeMemory(urlAddress + 8, url.Length);
+            remoteProcess.writeMemory(urlAddress +12, 0);
+            remoteProcess.writeMemory(urlAddress + 16, 0);
+            remoteProcess.writeMemory(urlAddress+24, bin);
+
+            Debug.WriteLine(BytesHelper.ToBin((int)call1).Flip().Format ());
+            Debug.WriteLine(BytesHelper.ToBin((int)call1 + 4).Flip().Format());
+            Debug.WriteLine(BytesHelper.ToBin((int)urlAddress).Flip().Format());
+
+            string code = $"""
+                                60 83 EC 14 8B CC B8 {BytesHelper.ToBin((int)urlAddress).Flip().Format()} 50 FF 15 {BytesHelper.ToBin((int)callAddress).Flip().Format()} FF 15 {BytesHelper.ToBin((int)callAddress + 4).Flip().Format()} 83 C4 14 61 C3 
+                """;
+            var memAddress = remoteProcess.VirtualAllocEx(4096);
+            remoteProcess.writeMemory(memAddress,code.ToBytes());
+
+            var h =  remoteProcess.creadThread(memAddress, 0);
+            kernel32.WaitForSingleObject(h, 2000);
+            kernel32.CloseHandle(h);
+            remoteProcess.FreeAllocEx(memAddress);
+            remoteProcess.FreeAllocEx(urlAddress);
+            remoteProcess.FreeAllocEx(callAddress);
+            #endregion
+
+
+            #region 发送消息
+            var msg = "caonima123";
+            var recvID = "q3231308";
+            var msgAddress = remoteProcess.VirtualAllocEx(4096);
+            code = $"""
+                B8 
+                { BytesHelper.ToBin ((int)msgAddress+80).Flip().Format()}
+                6A 01 50 BF 
+                {BytesHelper.ToBin((int)msgAddress + 100).Flip().Format()}
+                57 BA 
+                {BytesHelper.ToBin((int)msgAddress + 1000).Flip().Format()}
+                B9 
+                {BytesHelper.ToBin((int)msgAddress + 3000).Flip().Format()}
+                BB B0 E7 40 7A FF D3 83 C4 0C C3
+                """;
+            bin = code.ToBytes();
+            remoteProcess.writeMemory(msgAddress, bin);
+            remoteProcess.writeMemory(msgAddress + 80, 0);
+            remoteProcess.writeMemory(msgAddress + 84, 0);
+            remoteProcess.writeMemory(msgAddress + 88, 0);
+
+            bin = msg.GetBytes(Encoding.Unicode);
+            remoteProcess.writeMemory(msgAddress + 100, (int)msgAddress + 200);
+            remoteProcess.writeMemory(msgAddress + 104, bin.Length);
+            remoteProcess.writeMemory(msgAddress + 108, bin.Length);
+            remoteProcess.writeMemory(msgAddress + 112, 0);
+            remoteProcess.writeMemory(msgAddress + 116, 0);
+            remoteProcess.writeMemory(msgAddress + 200, bin);
+
+
+            bin = recvID.GetBytes(Encoding.Unicode);
+            remoteProcess.writeMemory(msgAddress + 1000, (int)msgAddress + 2000);
+            remoteProcess.writeMemory(msgAddress + 1004, bin.Length);
+            remoteProcess.writeMemory(msgAddress + 1008, bin.Length);
+            remoteProcess.writeMemory(msgAddress + 1012, 0);
+            remoteProcess.writeMemory(msgAddress + 1016, 0);
+
+            remoteProcess.writeMemory(msgAddress + 2000, bin);
+            remoteProcess.writeMemory(msgAddress + 3000, 2);
+
+            h= remoteProcess.creadThread(msgAddress);
+            kernel32.WaitForSingleObject(h, 2000);
+            kernel32.CloseHandle(h);
+
+            remoteProcess.FreeAllocEx(msgAddress);
+            #endregion
             return;
-
-
-            string localIpBase = IPHelper.GetLocalIPAddressBase();
-            int port = 5555;
-            int timeout = 1000; // Timeout in milliseconds
-            List<Task<bool>> tasks = new List<Task<bool>>();
-            List<string> IPs = new List<string>();
-            List<string> SuccessIP = new List<string>();
-
-            Console.WriteLine($"Starting scan for devices with open port {port}...");
-
-            for (int i = 1; i <= 254; i++)
-            {
-                string ip = $"{localIpBase}.{i}";
-                tasks.Add(IPHelper.IsHostPingedAsync(ip, 300));
-                IPs.Add(ip);
-            }
-            bool[] results = await Task.WhenAll(tasks);
-            tasks.Clear();
-            for (int i = 0; i < results.Length; i++)
-            {
-                if (results[i])
-                {
-                    SuccessIP.Add(IPs[i]);
-                    tasks.Add(IPHelper.IsPortOpenAsync(IPs[i], port, timeout));
-                    Console.WriteLine($"{IPs[i]} is online");
-                }
-
-            }
-            results = await Task.WhenAll(tasks);
-            // 等待所有任务完成
-
-            // 输出开放端口的IP地址
-            for (int i = 0; i < results.Length; i++)
-            {
-                if (results[i])
-                {
-                    Console.WriteLine($"Device found with open port {port} at: {localIpBase}.{i + 1}");
-                }
-                else
-                {
-                    Console.WriteLine($"Device not found with open port {port} at: {localIpBase}.{i + 1}");
-                }
-            }
-
-            Console.WriteLine("Scan complete.");
-            Console.Read();
         }
-        static async Task demo()
+        class WxFriendInfo
         {
-            Winhttp http = new Winhttp();
-            http.Domain = "https://book.lu.ink";
-            http.HttpVersion2 = false;
-            http.ContentType = "application/x-www-form-urlencoded";
-            http.Accept = "text/html, application/xhtml+xml, */*";
-            http.Headers.Add("Version", "1.1.3");
-            var body = "version=1.1.3&appid=23628&secretkey=FC9B7E979AA9118AB6EBBE0D939B3B2F&wtype=1&sign=17997b93114327168d39f807841a509d&timestamp=1698816071076&data=141F11C6AB584BE5DCA8FE6174EA8B96FC72ACD8BBF99BDFC1AF3FAABB089671F0315920B5F6007D022A32947CEDF8D0A693FC520618122567C427308D6EA2DBEEC2951A99CD9A142E3A5F9EAADEA16A4D31135F73903231761FFF4E6A12D352FCC7260BFE1F18275A44A565F4ACAA3FD1250E18CBA73E826529784CA06DDE71086592C3C9C395CCEF91AEC847CC45AD58C51CE74FCEEF56E23CBD744E105AA8";
-            var result = http.PostAsJson("/webgateway.html", body);
-            Debug.WriteLine(result);
-
-            await Task.Delay(3000);
-
-            http = new Winhttp();
-            http.Domain = "https://book.lu.ink";
-            http.HttpVersion2 = false;
-            http.ContentType = "application/x-www-form-urlencoded";
-            http.Accept = "text/html, application/xhtml+xml, */*";
-            http.Headers.Add("Version", "1.1.3");
-            body = "version=1.1.3&appid=23628&secretkey=FC9B7E979AA9118AB6EBBE0D939B3B2F&wtype=3&sign=368e39bd4746fbe148c8a457d83c46b0&timestamp=1698815904028&data=3E68A08A5CBA05B711DD0084C0842DDBB5C0459ED8AFAF98FF491BBDB6B92A24A5A1948447866EE2F5721E1684CEE088856DF93195D7B467DFFB52808865CC9BBFB2FFB7DC748780C348BB9DD04D85B9F745F2D1EA58D3C67A7BAE02B72DDC48122020AFE156947A78538424B2C734B95E79C87DA7D74D9DF38690C5D583991DA8749201FEB5AC95A5F71483021276F1A0B053F1A2B5585548DB7F744E853D32A03E85D4961AD4A7432B90F0322B937A3F22661E5ECACE494D9C067B73994E76C1EF3BFC8CD95EBE1864D54141DFEEF3FD6B38C7CDD116BF9CA59CDDF69417DD1500B5185E9C97D6653EC7D4F19DA086293D9BB5B5A55E96B5C55B8AEEE2310DC9541887258DBB040295A58BBE4FAF605B5F4013A7630EA87A913B98A723E2E281AAD991C91E20A3AF30888F742C08BF11B030F81D9FD4A9A6A33EAA60769BD02FD7BC698353BD72F439720EC2EDEA411A42D8E753E1F48AB0C8E5A7DC8357AE4E09CFACB80343976D7A9D3E85738A8AAE0AC8DC22FCC07BDC745083FBA1EC88";
-            result = http.PostAsJson("/webgateway.html", body);
-            Debug.WriteLine(result);
-
+            public string nick;
+            public string name;
+            public string id;
+            public string v3;
+            public string tag;
+            public string head;
+            public override string ToString()
+            {
+                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+            }
         }
+
+
 
     }
 }
