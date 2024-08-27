@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -39,7 +40,14 @@ namespace FyLib.Http
             _url = new Uri(domain);
             _path = _url.LocalPath;
             if (!_url.Query.IsNullOrEmpty())
-                _url.Query.Split("&").Select(a => a.Split("=")).ToList().ForEach(a => _querys.Add(a[0], a[1]));
+                _url.Query.Split("&").Select(a => a.Split("=")).ToList().ForEach(a =>
+                {
+                    if (a[0].StartsWith("?"))
+                    {
+                        a[0] = a[0][1..];
+                    }
+                    _querys.Add(a[0], a[1]);
+                });
         }
         /// <summary>
         /// 设置超时, 默认10000
@@ -151,7 +159,7 @@ namespace FyLib.Http
         public async Task<string?> GetAsStringAsync()
         {
             var result = await GetAsync();
-            
+
             this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
             {
@@ -231,7 +239,7 @@ namespace FyLib.Http
             try
             {
                 JObject.Parse(body);
-                var content = new StringContent(body, encoding);
+                var content = new StringContent(body, encoding, "application/json");
                 var result = await PostAsync(content);
                 return result;
             }
@@ -550,21 +558,23 @@ namespace FyLib.Http
         }
         #endregion
 
+        public CookieContainer cookieContainer = new CookieContainer();
         private void PackClient()
         {
             SocketsHttpHandler handler = new SocketsHttpHandler();
             handler.AllowAutoRedirect = _allowAutoRedirect;
             handler.EnableMultipleHttp2Connections = true;
             handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
+            handler.CookieContainer = cookieContainer;
             if (_client != null) _client.Dispose();
             _client = new System.Net.Http.HttpClient(handler);
             _client.BaseAddress = _url;
             _client.Timeout = Other.GetTimeSpan(_timeOut);
-           var b =  _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
+            var b = _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
             Debug.WriteLine(b);
             _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
             _client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
-            
+
             string query = string.Join("&", _querys.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (query.StartsWith("?"))
             {
@@ -575,6 +585,25 @@ namespace FyLib.Http
                 _path += "?" + query;
             }
 
+        }
+
+        /// <summary>
+        /// 获取Cookie
+        /// </summary>
+        public string Cookie
+        {
+            get
+            {
+                var cookieCollection = cookieContainer.GetCookies(_url);
+                var cookieHeader = new StringBuilder();
+                foreach (Cookie cookie in cookieCollection)
+                {
+                    if (cookieHeader.Length > 0)
+                        cookieHeader.Append("; ");
+                    cookieHeader.Append($"{cookie.Name}={cookie.Value}");
+                }
+                return cookieHeader.ToString();
+            }
         }
     }
 }

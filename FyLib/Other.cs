@@ -9,11 +9,14 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
 using static HashHelper;
-
+/// <summary>
+/// 其他辅助扩展类
+/// </summary>
 public static class Other
 {
     private static int m_iStartTime = TimeStamp();
@@ -51,7 +54,22 @@ public static class Other
     {
         return checked((int)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
     }
-
+    /// <summary>
+    /// 获取当前时区时间戳
+    /// </summary>
+    /// <returns></returns>
+    public static int LocalTimeStamp()
+    {
+        return checked((int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
+    }
+    /// <summary>
+    /// 获取当前时区时间戳毫秒
+    /// </summary>
+    /// <returns></returns>
+    public static int LocalTimeStampX()
+    {
+        return checked((int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMicroseconds);
+    }
     /// <summary>
     /// 取时间戳 十三位
     /// </summary>
@@ -70,11 +88,40 @@ public static class Other
     {
         return checked((int)(time - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
     }
-
+    /// <summary>
+    /// 获取基于当前时间的特定时间时间戳
+    /// </summary>
+    /// <param name="daysFromToday">日期， 1明天 2后天</param>
+    /// <param name="time">文本日期， 比如"07:00"</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static long GetTimestampAtSpecificTime(int daysFromToday, string time)
+    {
+        // 尝试从提供的时间字符串中解析时间
+        if (!TimeSpan.TryParse(time, out TimeSpan parsedTime))
+        {
+            throw new ArgumentException("Invalid time format. Please use HH:mm format.");
+        }
+        // 获取当前日期
+        DateTime today = DateTime.Today;
+        // 设置新的日期和时间，增加天数和解析得到的小时及分钟
+        DateTime targetDateTime = today.AddDays(daysFromToday)
+            .AddHours(parsedTime.Hours)
+            .AddMinutes(parsedTime.Minutes);
+        // 获取本地时区信息
+        TimeZoneInfo localZone = TimeZoneInfo.Local;
+        // 将本地时间转换为 UTC 时间
+        DateTime utcDateTime = TimeZoneInfo.ConvertTimeToUtc(targetDateTime, localZone);
+        // 获取从1970年1月1日到 UTC 时间的时间间隔（时间戳）
+        TimeSpan elapsedTime = utcDateTime - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        // 返回时间戳（秒）
+        return (long)elapsedTime.TotalSeconds;
+    }
     /// <summary>
     /// 时间戳到文本
     /// </summary>
-    /// <param name="timeStamp">十位的时间戳</param>
+    /// <param name="timestamp">十位的时间戳</param>
+    /// <param name="isMilliseconds">是否毫秒</param>
     /// <returns></returns>
     public static string TimeStampToString(int timestamp, bool isMilliseconds = false)
     {
@@ -94,13 +141,13 @@ public static class Other
     /// <summary>
     /// 时间戳到日期
     /// </summary>
-    /// <param name="TimeStamp">日期</param>
-    /// <param name="isMinSeconds">是否毫秒</param>
+    /// <param name="timestamp">日期</param>
+    /// <param name="isMilliseconds">是否毫秒</param>
     /// <returns></returns>
-    public static DateTime StampToDatetime(long timestamp, bool isMillisecond = false)
+    public static DateTime StampToDatetime(long timestamp, bool isMilliseconds = false)
     {
         // 判断时间戳是否为13位
-        if (isMillisecond)
+        if (isMilliseconds)
         {
             // 如果是13位，将时间戳除以1000得到以秒为单位的时间戳
             timestamp = timestamp / 1000;
@@ -153,16 +200,27 @@ public static class Other
         return text2;
     }
 
-    private static readonly Random random = new Random();
     /// <summary>
     /// 随机数字
     /// </summary>
-    /// <param name="min">最小值</param>
-    /// <param name="max">最大值</param>
+    /// <param name="minValue">最小值</param>
+    /// <param name="maxValue">最大值</param>
     /// <returns></returns>
-    public static int RandInt(int min, int max)
+    public static int RandInt(int minValue, int maxValue)
     {
-        return random.Next(min, max);
+        if (minValue > maxValue)
+        {
+            throw new ArgumentOutOfRangeException("minValue must be less than maxValue");
+        }
+        if (minValue == maxValue) return minValue;
+
+        using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+        {
+            byte[] randomNumber = new byte[4]; // Create a byte array to hold the data
+            rng.GetBytes(randomNumber); // Fill the array with random bytes
+            int result = BitConverter.ToInt32(randomNumber, 0); // Convert bytes to an integer
+            return (Math.Abs(result) % (maxValue - minValue + 1)) + minValue; // Map the result to the specified range
+        }
     }
 
     /// <summary>
@@ -172,7 +230,7 @@ public static class Other
     /// <returns></returns>
     public static int RandInt(int max)
     {
-        return random.Next(max);
+        return RandInt(1, max);
     }
 
     /// <summary>
@@ -181,7 +239,7 @@ public static class Other
     /// <returns></returns>
     public static int RandInt()
     {
-        return random.Next();
+        return RandInt(1, int.MaxValue);
     }
 
     /// <summary>
