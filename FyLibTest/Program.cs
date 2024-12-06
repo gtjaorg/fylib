@@ -20,15 +20,11 @@ namespace FyLibTest
 {
     internal class Program
     {
-        static void  Main(string[] args)
+        static  void  Main(string[] args)
         {
-            long time = TimeHelper.TimeStamp();
-            Debug.WriteLine($"UtcTime -> {time}");
-            Debug.WriteLine($"Localtime -> {TimeHelper.LocalTimeStamp()}");
-            Debug.WriteLine(time - TimeHelper.LocalTimeStamp());
-            time = TimeHelper.UtcTimestampToLocalTimestamp(time);
-            Debug.WriteLine(time);
-           Debug.WriteLine(TimeHelper.LocalTimestampToUtcTimestamp(time));
+            var http =  "http://aldsidle.agiso.com/Oauth/AcprLogin?code=8a39c6e22fa44b1dbe6e97aa7f523daae815d56a73904a77b072c622d6c3c91d".AsQuickHttp().setAutoRedirect(false).GetAsStringAsync();
+            http.Wait();
+            Console.WriteLine(http);
         }
         class WxFriendInfo
         {

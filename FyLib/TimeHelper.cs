@@ -55,9 +55,9 @@ namespace FyLib
         /// 获取时间戳毫秒UTC
         /// </summary>
         /// <returns></returns>
-        public static int TimeStampX()
+        public static long TimeStampX()
         {
-            return checked((int)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMicroseconds);
+            return checked((long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMicroseconds);
         }
         /// <summary>
         /// 取当前时区时间戳 十三位
@@ -100,6 +100,34 @@ namespace FyLib
             // 将本地时间转换为本地时间戳（以秒为单位）
             long localTimestamp = localDateTime.LocalTimeStamp();
             return localTimestamp;
+        }
+        /// <summary>
+        /// UTC时间戳转换本地时间戳
+        /// </summary>
+        /// <param name="utcTimestamp"></param>
+        /// <returns></returns>
+        public static int UtcTimestampToLocalTimestamp(int utcTimestamp)
+        {
+            // 将 UTC 时间戳转换为 DateTime
+            DateTime utcDateTime = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
+            // 将 UTC 时间转换为本地时间
+            DateTime localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
+            // 将本地时间转换为本地时间戳（以秒为单位）
+            int localTimestamp = localDateTime.LocalTimeStamp();
+            return localTimestamp;
+        }
+        /// <summary>
+        /// 本地时间戳转换Utc时间戳
+        /// </summary>
+        /// <param name="localTimestamp"></param>
+        /// <returns></returns>
+        public static int LocalTimestampToUtcTimestamp(int localTimestamp)
+        {
+            // 将时间戳转换为 DateTime
+            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(localTimestamp).DateTime;
+            // 将UTC时间转换为UTC时间戳（以秒为单位）
+            int utcTimestamp = dateTime.TimeStamp();
+            return utcTimestamp;
         }
         /// <summary>
         /// 本地时间戳转换Utc时间戳

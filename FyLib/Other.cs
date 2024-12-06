@@ -80,15 +80,6 @@ public static class Other
     }
 
     /// <summary>
-    /// 取指定时间的时间戳
-    /// </summary>
-    /// <param name="time"></param>
-    /// <returns></returns>
-    public static int TimeStamp(this DateTime time)
-    {
-        return checked((int)(time - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
-    }
-    /// <summary>
     /// 获取基于当前时间的特定时间时间戳
     /// </summary>
     /// <param name="daysFromToday">日期， 1明天 2后天</param>
