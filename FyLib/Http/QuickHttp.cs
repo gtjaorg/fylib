@@ -593,6 +593,7 @@ namespace FyLib.Http
             _client = new System.Net.Http.HttpClient(handler);
             _client.BaseAddress = _url;
             _client.Timeout = Other.GetTimeSpan(_timeOut);
+
             var b = _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
             Debug.WriteLine(b);
             _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
@@ -607,7 +608,6 @@ namespace FyLib.Http
             {
                 _path += "?" + query;
             }
-
         }
 
         /// <summary>
