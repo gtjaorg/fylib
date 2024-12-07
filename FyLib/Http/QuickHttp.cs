@@ -31,6 +31,18 @@ namespace FyLib.Http
         private Map<string, string> _headers = new Map<string, string>();
         private bool _allowAutoRedirect = true;
         private Map<string, string> _querys = new Map<string, string>();
+
+        private bool _useHttp2 = false;
+        /// <summary>
+        /// 是否使用 HTTP2
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public QuickHttp UseHttp2(bool value = false)
+        {
+            this._useHttp2 = value;
+            return this;
+        }
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -145,6 +157,10 @@ namespace FyLib.Http
         {
             PackClient();
             HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Get, _path);
+            if (this._useHttp2)
+            {
+                msg.Version = new Version(2, 0);
+            }
             foreach (var item in _headers.ToList())
             {
                 msg.Headers.Add(item.Key, item.Value);
@@ -218,6 +234,10 @@ namespace FyLib.Http
         {
             PackClient();
             HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Post, _path);
+            if (_useHttp2)
+            {
+                msg.Version = new Version(2, 0);
+            }
             msg.Content = content;
             foreach (var item in _headers.ToList())
             {
@@ -563,7 +583,10 @@ namespace FyLib.Http
         {
             SocketsHttpHandler handler = new SocketsHttpHandler();
             handler.AllowAutoRedirect = _allowAutoRedirect;
-            handler.EnableMultipleHttp2Connections = true;
+            if (_useHttp2)
+            {
+                handler.EnableMultipleHttp2Connections = true;
+            }
             handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
             handler.CookieContainer = cookieContainer;
             if (_client != null) _client.Dispose();
