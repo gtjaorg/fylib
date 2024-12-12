@@ -31,8 +31,20 @@ namespace FyLib.Http
         private Map<string, string> _headers = new Map<string, string>();
         private bool _allowAutoRedirect = true;
         private Map<string, string> _querys = new Map<string, string>();
+        private System.Security.Authentication.SslProtocols? _sslProtocols = null;
 
         private bool _useHttp2 = false;
+        /// <summary>
+        /// 设置 SSL
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public QuickHttp SetSslProtocols(System.Security.Authentication.SslProtocols value)
+        {
+            _sslProtocols = value;
+            return this;
+        }
+
         /// <summary>
         /// 是否使用 HTTP2
         /// </summary>
@@ -587,6 +599,11 @@ namespace FyLib.Http
             {
                 handler.EnableMultipleHttp2Connections = true;
             }
+            if (_sslProtocols != null)
+            {
+                handler.SslOptions.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
+            }
+
             handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
             handler.CookieContainer = cookieContainer;
             if (_client != null) _client.Dispose();
