@@ -601,7 +601,7 @@ namespace FyLib.Http
             }
             if (_sslProtocols != null)
             {
-                handler.SslOptions.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
+                handler.SslOptions.EnabledSslProtocols = _sslProtocols;
             }
 
             handler.AutomaticDecompression = DecompressionMethods.All;
