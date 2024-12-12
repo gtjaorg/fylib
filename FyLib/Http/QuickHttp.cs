@@ -483,7 +483,7 @@ namespace FyLib.Http
         public async Task<byte[]?> PostAsBytesAsync(string body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
-            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            if (result.StatusCode != HttpStatusCode.OK)
             {
                 return null;
             }
@@ -498,7 +498,7 @@ namespace FyLib.Http
         public async Task<byte[]?> PostAsBytesAsync(byte[] body)
         {
             var result = await PostAsync(body);
-            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            if (result.StatusCode != HttpStatusCode.OK)
             {
                 return null;
             }
@@ -530,7 +530,7 @@ namespace FyLib.Http
         public async Task<byte[]?> PostAsBytesAsync(JToken body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
-            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            if (result.StatusCode != HttpStatusCode.OK)
             {
                 return null;
             }
@@ -548,7 +548,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null || str.IsNullOrEmpty()) return default;
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
+            return JsonConvert.DeserializeObject<T>(str);
         }
         /// <summary>
         /// Post JToken
@@ -561,7 +561,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null || str.IsNullOrEmpty()) return default;
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
+            return JsonConvert.DeserializeObject<T>(str);
         }
         /// <summary>
         /// Post Object
@@ -574,7 +574,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null || str.IsNullOrEmpty()) return default;
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
+            return JsonConvert.DeserializeObject<T>(str);
         }
         /// <summary>
         /// Post Byte[]
@@ -586,7 +586,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body);
             if (str == null || str.IsNullOrEmpty()) return default;
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
+            return JsonConvert.DeserializeObject<T>(str);
         }
         #endregion
 
@@ -604,10 +604,10 @@ namespace FyLib.Http
                 handler.SslOptions.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
             }
 
-            handler.AutomaticDecompression = System.Net.DecompressionMethods.All;
+            handler.AutomaticDecompression = DecompressionMethods.All;
             handler.CookieContainer = cookieContainer;
             if (_client != null) _client.Dispose();
-            _client = new System.Net.Http.HttpClient(handler);
+            _client = new HttpClient(handler);
             _client.BaseAddress = _url;
             _client.Timeout = Other.GetTimeSpan(_timeOut);
 
