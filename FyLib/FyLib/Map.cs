@@ -62,7 +62,7 @@ public class Map<TKey, TValue>
     /// <returns></returns>
     public TValue GetValue(TKey key)
     {
-        TValue value = default(TValue);
+        TValue value = default;
         maps.TryGetValue(key, out value);
         return value;
     }
@@ -85,7 +85,7 @@ public class Map<TKey, TValue>
     /// <returns></returns>
     public List<KeyValuePair<TKey, TValue>> ToList()
     {
-        return maps.ToList();
+        return [.. maps];
     }
 
     /// <summary>
