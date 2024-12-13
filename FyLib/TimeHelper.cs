@@ -182,21 +182,17 @@ namespace FyLib
         {
             // 将时间戳转换为 DateTime 对象（UTC时间）
             DateTime dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
-
             // 将 UTC 时间转换为本地时间
             DateTime localDateTime = dateTime.ToLocalTime();
-
             // 提取小时和分钟
             int hour = localDateTime.Hour;
             int minute = localDateTime.Minute;
-
             // 解析传入的时间字符串
             string[] timeParts = compareTime.Split(':');
             if (timeParts.Length != 2 || !int.TryParse(timeParts[0], out int compareHour) || !int.TryParse(timeParts[1], out int compareMinute))
             {
                 throw new ArgumentException("时间格式不正确，请使用 HH:mm 格式。");
             }
-
             // 只比较小时和分钟
             if (hour > compareHour || (hour == compareHour && minute > compareMinute))
             {
@@ -252,17 +248,14 @@ namespace FyLib
             // 将 StartTime 和 EndTime 转换为 TimeSpan
             var startTimeSpan = TimeSpan.ParseExact(startTime, "HH:mm", CultureInfo.InvariantCulture);
             var endTimeSpan = TimeSpan.ParseExact(endTime, "HH:mm", CultureInfo.InvariantCulture);
-
             // 构造当天的开始和结束时间
             var startDateTime = now.Date + startTimeSpan;
             var endDateTime = now.Date + endTimeSpan;
-
             // 如果结束时间小于开始时间，说明跨越了午夜，将结束时间加一天
             if (endTimeSpan < startTimeSpan)
             {
                 endDateTime = endDateTime.AddDays(1);
             }
-
             // 判断当前时间是否在范围内
             return (now >= startDateTime) && (now <= endDateTime);
         }
@@ -270,7 +263,7 @@ namespace FyLib
         /// <summary>
         /// 解析时间文本，返回小时和分钟
         /// </summary>
-        /// <param name="time"></param>
+        /// <param name="time">HH:mm</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static (int hour, int minute) ParseTime(string time)

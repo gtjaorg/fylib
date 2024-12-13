@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
+using FyLib.Http;
+
 using Newtonsoft.Json;
 
 /// <summary>
@@ -88,4 +90,8 @@ public static class Project
     {
         Process.GetCurrentProcess().Kill();
     }
+    /// <summary>
+    /// HttpClientPool
+    /// </summary>
+    public static HttpClientPool HttpPool { get; private set; } = new HttpClientPool();
 }

@@ -35,22 +35,31 @@ namespace FyLib.Http
 
         private bool _useHttp2 = false;
         /// <summary>
+        /// HttpClient客户端
+        /// </summary>
+        public HttpClient Client
+        {
+            get
+            {
+                return _client;
+            }
+        }
+        /// <summary>
         /// 设置 SSL
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp SetSslProtocols(System.Security.Authentication.SslProtocols value)
+        public QuickHttp setSslProtocols(System.Security.Authentication.SslProtocols value)
         {
             _sslProtocols = value;
             return this;
         }
-
         /// <summary>
         /// 是否使用 HTTP2
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp UseHttp2(bool value = false)
+        public QuickHttp useHttp2(bool value = false)
         {
             this._useHttp2 = value;
             return this;
@@ -178,6 +187,7 @@ namespace FyLib.Http
                 msg.Headers.Add(item.Key, item.Value);
             }
             var result = _client.SendAsync(msg);
+            Project.HttpPool.Push(_url.ToString(), _client);
             return result;
         }
         /// <summary>
@@ -187,7 +197,6 @@ namespace FyLib.Http
         public async Task<string?> GetAsStringAsync()
         {
             var result = await GetAsync();
-
             this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
             {
@@ -256,6 +265,7 @@ namespace FyLib.Http
                 msg.Headers.Add(item.Key, item.Value);
             }
             var result = _client.SendAsync(msg);
+            Project.HttpPool.Push(_url.ToString(), _client);
             result.ConfigureAwait(false);
             return result;
         }
@@ -273,12 +283,14 @@ namespace FyLib.Http
                 JObject.Parse(body);
                 var content = new StringContent(body, encoding, "application/json");
                 var result = await PostAsync(content);
+                this.ResponseMessage = result;
                 return result;
             }
             catch (Exception)
             {
                 var content = new StringContent(body, encoding, "application/x-www-form-urlencoded");
                 var result = await PostAsync(content);
+                this.ResponseMessage = result;
                 return result;
             }
 
@@ -295,6 +307,7 @@ namespace FyLib.Http
             if (encoding == null) encoding = Encoding.UTF8;
             var content = new StringContent(JsonConvert.SerializeObject(body), encoding);
             var result = await PostAsync(content);
+            this.ResponseMessage = result;
             return result;
         }
         /// <summary>
@@ -314,6 +327,7 @@ namespace FyLib.Http
             string str = JsonConvert.SerializeObject(JToken, val);
             var content = new StringContent(str, encoding, MediaTypeHeaderValue.Parse("application/json"));
             var result = await PostAsync(content);
+            this.ResponseMessage = result;
             return result;
         }
         /// <summary>
@@ -326,6 +340,7 @@ namespace FyLib.Http
             if (bytes == null) bytes = new byte[0];
             var content = new ByteArrayContent(bytes);
             var result = await PostAsync(content);
+            this.ResponseMessage = result;
             return result;
         }
         /// <summary>
@@ -337,6 +352,7 @@ namespace FyLib.Http
         public async Task<string?> PostAsStringAsync(string body, Encoding? encoding = null)
         {
             var result = await PostAsync(body, encoding);
+            this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 return null;
@@ -410,6 +426,7 @@ namespace FyLib.Http
         public async Task<string?> PostAsStringAsync(byte[] body)
         {
             var result = await PostAsync(body);
+            this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 return null;
@@ -498,6 +515,7 @@ namespace FyLib.Http
         public async Task<byte[]?> PostAsBytesAsync(byte[] body)
         {
             var result = await PostAsync(body);
+            this.ResponseMessage = result;
             if (result.StatusCode != HttpStatusCode.OK)
             {
                 return null;
@@ -593,28 +611,37 @@ namespace FyLib.Http
         public CookieContainer cookieContainer = new CookieContainer();
         private void PackClient()
         {
-            SocketsHttpHandler handler = new SocketsHttpHandler();
-            handler.AllowAutoRedirect = _allowAutoRedirect;
-            if (_useHttp2)
+            var t = Project.HttpPool.Pop(_url.ToString());
+            if (t == null)
             {
-                handler.EnableMultipleHttp2Connections = true;
+                SocketsHttpHandler handler = new SocketsHttpHandler();
+                handler.AllowAutoRedirect = _allowAutoRedirect;
+                if (_useHttp2)
+                {
+                    handler.EnableMultipleHttp2Connections = true;
+                    handler.MaxConnectionsPerServer = 256;
+                }
+                if (_sslProtocols != null)
+                {
+                    handler.SslOptions.EnabledSslProtocols = (System.Security.Authentication.SslProtocols)_sslProtocols;
+                }
+
+                handler.AutomaticDecompression = DecompressionMethods.All;
+                handler.CookieContainer = cookieContainer;
+                if (_client != null) _client.Dispose();
+                _client = new HttpClient(handler);
+                _client.BaseAddress = _url;
+                _client.Timeout = Other.GetTimeSpan(_timeOut);
+                var b = _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
+                _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
+                _client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
             }
-            if (_sslProtocols != null)
+            else
             {
-                handler.SslOptions.EnabledSslProtocols = _sslProtocols;
+                _client = t;
             }
 
-            handler.AutomaticDecompression = DecompressionMethods.All;
-            handler.CookieContainer = cookieContainer;
-            if (_client != null) _client.Dispose();
-            _client = new HttpClient(handler);
-            _client.BaseAddress = _url;
-            _client.Timeout = Other.GetTimeSpan(_timeOut);
 
-            var b = _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
-            Debug.WriteLine(b);
-            _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
-            _client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
 
             string query = string.Join("&", _querys.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (query.StartsWith("?"))
