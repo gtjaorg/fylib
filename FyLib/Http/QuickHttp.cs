@@ -625,7 +625,6 @@ namespace FyLib.Http
                 {
                     handler.SslOptions.EnabledSslProtocols = (System.Security.Authentication.SslProtocols)_sslProtocols;
                 }
-
                 handler.AutomaticDecompression = DecompressionMethods.All;
                 handler.CookieContainer = cookieContainer;
                 if (_client != null) _client.Dispose();
@@ -640,9 +639,6 @@ namespace FyLib.Http
             {
                 _client = t;
             }
-
-
-
             string query = string.Join("&", _querys.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (query.StartsWith("?"))
             {

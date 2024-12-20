@@ -21,19 +21,10 @@ public static class BytesHelper
     /// <returns></returns>
     public static byte[] add(byte[] bin, byte[] bin2)
     {
-        List<byte> list = new List<byte>();
-        checked
-        {
-            for (int i = 0; i < bin.Length; i++)
-            {
-                list.Add(bin[i]);
-            }
-            for (int j = 0; j < bin2.Length; j++)
-            {
-                list.Add(bin2[j]);
-            }
-            return list.ToArray();
-        }
+        byte[] result = new byte[bin.Length + bin2.Length];
+        Buffer.BlockCopy(bin, 0, result, 0, bin.Length);
+        Buffer.BlockCopy(bin2, 0, result, bin.Length, bin2.Length);
+        return result;
     }
 
     /// <summary>
@@ -61,7 +52,7 @@ public static class BytesHelper
     /// <returns></returns>
     public static byte[] Md5(this byte[] data)
     {
-        return new MD5CryptoServiceProvider().ComputeHash(data);
+        return data.Md5();
     }
 
     /// <summary>
@@ -70,15 +61,11 @@ public static class BytesHelper
     /// <returns></returns>
     public static bool Equal(this byte[] bin1, byte[] data)
     {
-        if (bin1 == null || data == null)
+        if (bin1 == null || data == null || bin1.Length != data.Length)
         {
             return false;
         }
-        if (bin1.Length != data.Length)
-        {
-            return false;
-        }
-        for (int i = 0; i < bin1.Length; i = checked(i + 1))
+        for (int i = 0; i < bin1.Length; i++)
         {
             if (bin1[i] != data[i])
             {
@@ -97,28 +84,13 @@ public static class BytesHelper
     public static int IndexOf(this byte[] data, byte[] searchBytes)
     {
         if (data == null)
-        {
-            return -1;
-        }
-        if (searchBytes == null)
-        {
-            return -1;
-        }
-        if (data.Length == 0)
-        {
-            return -1;
-        }
-        if (searchBytes.Length == 0)
-        {
-            return -1;
-        }
-        if (data.Length < searchBytes.Length)
-        {
-            return -1;
-        }
+            if (data == null || searchBytes == null || data.Length == 0 || searchBytes.Length == 0 || data.Length < searchBytes.Length)
+            {
+                return -1;
+            }
         checked
         {
-            for (int i = 0; i < data.Length - searchBytes.Length; i++)
+            for (int i = 0; i <= data.Length - searchBytes.Length; i++)
             {
                 if (data[i] != searchBytes[0])
                 {

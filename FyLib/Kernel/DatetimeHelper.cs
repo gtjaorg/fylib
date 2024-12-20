@@ -31,5 +31,27 @@ public static class DatetimeHelper
         DateTime dateTime = dateTimeOffset.LocalDateTime;
         return dateTime;
     }
+    /// <summary>
+    /// Datetime转十三位时间戳
+    /// </summary>
+    /// <param name="dateTime"></param>
+    /// <returns></returns>
+    public static long DateTimeToUnixTimeStampX(this DateTime dateTime)
+    {
+        DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
+        return dateTimeOffset.ToUnixTimeMilliseconds();
+    }
+    /// <summary>
+    /// Datetime转十位时间戳
+    /// </summary>
+    /// <param name="dateTime"></param>
+    /// <returns></returns>
+    public static int DateTimeToUnixTimeStamp(this DateTime dateTime)
+    {
+        DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
+        return (int)dateTimeOffset.ToUnixTimeSeconds();
+    }
+
+
 }
 

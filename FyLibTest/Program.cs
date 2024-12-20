@@ -22,13 +22,9 @@ namespace FyLibTest
     {
         static void Main(string[] args)
         {
-            for (int i = 0; i < 30; i++)
-            {
-                var http = "http://aldsidle.agiso.com/Oauth/AcprLogin?code=8a39c6e22fa44b1dbe6e97aa7f523daae815d56a73904a77b072c622d6c3c91d".AsQuickHttp().setSslProtocols(System.Security.Authentication.SslProtocols.Tls13).setAutoRedirect(false);
-                var task = http.GetAsStringAsync();
-
-            }
-            Console.ReadKey();
+            DateTime dt = DateTime.Now;
+            Debug.WriteLine(dt.DateTimeToUnixTimeStamp());
+            Debug.WriteLine(dt.DateTimeToUnixTimeStampX());
         }
         class WxFriendInfo
         {

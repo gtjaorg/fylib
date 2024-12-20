@@ -30,7 +30,11 @@ public static class HashHelper
                 crcTable[i] = crc;
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
         public uint GetCRC32(byte[] bytes)
         {
             uint crcValue = 0xffffffff;
@@ -558,19 +562,25 @@ public static class HashHelper
             }
         }
     }
-
+    /// <summary>
+    /// MD5
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns></returns>
     public static byte[] MD5(string str)
     {
-        MD5CryptoServiceProvider mD5CryptoServiceProvider = new MD5CryptoServiceProvider();
         byte[] bytes = Encoding.Default.GetBytes(str);
-        return mD5CryptoServiceProvider.ComputeHash(bytes);
+        return MD5(bytes);
     }
-
+    /// <summary>
+    /// MD5
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns> String </returns>
     public static string MD5_(string str)
     {
-        MD5CryptoServiceProvider mD5CryptoServiceProvider = new MD5CryptoServiceProvider();
         byte[] bytes = Encoding.Default.GetBytes(str);
-        byte[] array = mD5CryptoServiceProvider.ComputeHash(bytes);
+        byte[] array = MD5(bytes);
         string text = "";
         for (int i = 0; i < array.Length; i = checked(i + 1))
         {
@@ -578,10 +588,14 @@ public static class HashHelper
         }
         return text;
     }
-
+    /// <summary>
+    /// MD5 
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns>String</returns>
     public static string MD5_(byte[] value)
     {
-        byte[] array = new MD5CryptoServiceProvider().ComputeHash(value);
+        byte[] array = MD5(value);
         string text = "";
         for (int i = 0; i < array.Length; i = checked(i + 1))
         {
@@ -589,12 +603,23 @@ public static class HashHelper
         }
         return text;
     }
-
+    /// <summary>
+    /// MD5
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
     public static byte[] MD5(byte[] value)
     {
-        return new MD5CryptoServiceProvider().ComputeHash(value);
-    }
+        System.Security.Cryptography.MD5 t = System.Security.Cryptography.MD5.Create();
+        return t.ComputeHash(value);
 
+    }
+    /// <summary>
+    /// QQTEA加密
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
     public static byte[] QQTEAEncrypt(byte[] value, byte[] key)
     {
         byte[] result = null;
@@ -604,7 +629,12 @@ public static class HashHelper
         }
         return new QQCrypter().TeanEncipher(value, key);
     }
-
+    /// <summary>
+    /// QQTEA解密
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
     public static byte[] QQTEADecrypt(byte[] value, byte[] key)
     {
         byte[] result = null;
@@ -614,32 +644,58 @@ public static class HashHelper
         }
         return new QQCrypter().TeanDecipher(value, key);
     }
-
+    /// <summary>
+    /// CRC32
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
     public static byte[] Crc32(byte[] value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value));
     }
-
+    /// <summary>
+    /// CRC32
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
     public static byte[] Crc32(string value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value));
     }
-
+    /// <summary>
+    /// CRC32
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
     public static string Crc32_(string value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value)).ToHex().ToUpper();
     }
-
+    /// <summary>
+    /// CRC32
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
     public static string Crc32_(byte[] value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value)).ToHex().ToUpper();
     }
-
+    /// <summary>
+    /// Xtea加密
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
     public static byte[] XTeaEncrypt(byte[] value, byte[] key)
     {
         return new QQCrypter().XTeanEncipher(value, key);
     }
-
+    /// <summary>
+    /// Xtea解密
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
     public static byte[] XTeaDecrypt(byte[] value, byte[] key)
     {
         return new QQCrypter().XTeanDecipher(value, key);
@@ -695,8 +751,8 @@ public static class HashHelper
                 list.Add((byte)(array2[num6] ^ array[k]));
             }
             list.AddRange(MD5(bufTGTGT));
-            List<byte> list2 = new List<byte>(MD5(list.ToArray()));
-            byte[] array4 = list2.ToArray();
+            List<byte> list2 = [.. MD5(list.ToArray())];
+            byte[] array4 = [.. list2];
             for (int l = 0; l < num3; l++)
             {
                 array4 = MD5(array4);
