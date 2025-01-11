@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <Version>1.1.7</Version>
+    <Version>1.1.8</Version>
     <Authors>枫影傲然</Authors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Title>FyLib</Title>
+    <Copyright>枫影傲然</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

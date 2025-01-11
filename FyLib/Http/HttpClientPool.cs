@@ -13,7 +13,13 @@ namespace FyLib.Http
     /// </summary>
     public class HttpClientPool
     {
-        private Lock Lock = new Lock();
+#if NET9_0
+private Lock Lock = new ();
+#else
+        private object Lock = new object();
+#endif
+
+
         private List<HttpClientInfo> infos = new List<HttpClientInfo>();
         /// <summary>
         /// 队列长度
@@ -35,6 +41,7 @@ namespace FyLib.Http
             {
                 await Task.Delay(50);
                 var ls = infos.Where(a => a.Time < Other.TimeStamp() - 180).ToList();
+#if NET9_0
                 this.Lock.Enter();
                 foreach (var item in ls)
                 {
@@ -42,6 +49,16 @@ namespace FyLib.Http
                     item.Client.Dispose();
                 }
                 this.Lock.Exit();
+#else
+                lock (Lock)
+                {
+                    foreach (var item in ls)
+                    {
+                        infos.Remove(item);
+                        item.Client.Dispose();
+                    }
+                }
+#endif
             }
         }
         /// <summary>
@@ -56,6 +73,7 @@ namespace FyLib.Http
         /// </summary>
         public void Dispose()
         {
+#if NET9_0
             this.Lock.Enter();
             foreach (var item in infos)
             {
@@ -63,6 +81,17 @@ namespace FyLib.Http
                 item.Client.Dispose();
             }
             this.Lock.Exit();
+#else
+            lock (Lock)
+            {
+                foreach (var item in infos)
+                {
+                    infos.Remove(item);
+                    item.Client.Dispose();
+                }
+            }
+#endif
+
         }
         /// <summary>
         /// 添加
@@ -71,6 +100,7 @@ namespace FyLib.Http
         /// <param name="client"></param>
         public void Push(string BaseUrl, HttpClient client)
         {
+#if NET9_0
             Lock.Enter();
             infos.Add(new HttpClientInfo()
             {
@@ -80,6 +110,20 @@ namespace FyLib.Http
                 Status = 0
             });
             this.Lock.Exit();
+#else
+            lock (Lock)
+            {
+                infos.Add(new HttpClientInfo()
+                {
+                    Name = BaseUrl,
+                    Client = client,
+                    Time = Other.TimeStamp(),
+                    Status = 0
+                });
+            }
+#endif
+
+
         }
         /// <summary>
         /// 弹出
@@ -88,6 +132,7 @@ namespace FyLib.Http
         /// <returns></returns>
         public HttpClient? Pop(string BaseUrl)
         {
+#if NET9_0
             this.Lock.Enter();
             var client = infos.Where(info => info.Name == BaseUrl && info.Status == 0).FirstOrDefault();
             if (client != null)
@@ -97,6 +142,17 @@ namespace FyLib.Http
                 return client.Client;
             }
             this.Lock.Exit();
+#else
+            lock (Lock)
+            {
+                var client = infos.Where(info => info.Name == BaseUrl && info.Status == 0).FirstOrDefault();
+                if (client != null)
+                {
+                    infos.Remove(client);
+                    return client.Client;
+                }
+            }
+#endif
             return null;
         }
     }
