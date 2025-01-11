@@ -25,6 +25,7 @@ namespace FyLibTest
             DateTime dt = DateTime.Now;
             Debug.WriteLine(dt.DateTimeToUnixTimeStamp());
             Debug.WriteLine(dt.DateTimeToUnixTimeStampX());
+            Debug.WriteLine(Other.RandBytes().Md5().ToHex());
         }
         class WxFriendInfo
         {

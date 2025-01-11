@@ -52,7 +52,7 @@ public static class BytesHelper
     /// <returns></returns>
     public static byte[] Md5(this byte[] data)
     {
-        return data.Md5();
+        return HashHelper.MD5(data);
     }
 
     /// <summary>
