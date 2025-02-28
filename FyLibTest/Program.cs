@@ -22,20 +22,7 @@ namespace FyLibTest
     {
         static void Main(string[] args)
         {
-            DateTime dt = DateTime.Now;
-            Debug.WriteLine(dt.DateTimeToUnixTimeStamp());
-            Debug.WriteLine(dt.DateTimeToUnixTimeStampX());
-            Debug.WriteLine(Other.RandBytes().Md5().ToHex());
-            var t = Task.Run(async () =>
-            {
-                string ip = "218.95.39.77";
-                int port = 12639;
-                var b = await IPHelper.IsPortOpenAsync(ip, port, 1000);
-                Debug.WriteLine(b);
-               var str =   await "https://2024.ip138.com/".AsQuickHttp().setProxy(ip, port).GetAsStringAsync();
-                Debug.WriteLine(str);
-            });
-            t.Wait();
+            Debug.WriteLine(TimeHelper.GetTimeDifferenceInDays(1740672404, 1740625604));
         }
         class WxFriendInfo
         {

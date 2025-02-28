@@ -300,5 +300,58 @@ namespace FyLib
             }
             return time >= startTime && time <= endTime;
         }
+        /// <summary>
+        /// 获取两个时间戳之间的天数差 time2-time1
+        /// </summary>
+        /// <param name="timestamp1"></param>
+        /// <param name="timestamp2"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static int GetTimeDifferenceInDays(int timestamp1, int timestamp2)
+        {
+            if (timestamp1 < 0 || timestamp2 < 0)
+            {
+                throw new ArgumentException("时间戳不能为负数。");
+            }
+            var dateTimeOffset1 = timestamp1.UnixTimeStampToDateTime();
+            var dateTimeOffset2 = timestamp2.UnixTimeStampToDateTime();
+            return (int)(dateTimeOffset2.Date - dateTimeOffset1.Date).TotalDays;
+        }
+        /// <summary>
+        /// 获取两个时间戳之间的小时差
+        /// </summary>
+        /// <param name="timestamp1"></param>
+        /// <param name="timestamp2"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static int GetTimeDifferenceInHours(int timestamp1, int timestamp2)
+        {
+            if (timestamp1 < 0 || timestamp2 < 0)
+            {
+                throw new ArgumentException("时间戳不能为负数。");
+            }
+            var dateTimeOffset1 = timestamp1.UnixTimeStampToDateTime();
+            var dateTimeOffset2 = timestamp2.UnixTimeStampToDateTime();
+            return (int)(dateTimeOffset2 - dateTimeOffset1).TotalHours;
+        }
+        /// <summary>
+        /// 获取两个时间戳之间的分钟差
+        /// </summary>
+        /// <param name="timestamp1"></param>
+        /// <param name="timestamp2"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static int GetTimeDifferenceInMinutes(int timestamp1, int timestamp2)
+        {
+            if (timestamp1 < 0 || timestamp2 < 0)
+            {
+                throw new ArgumentException("时间戳不能为负数。");
+            }
+            var dateTimeOffset1 = timestamp1.UnixTimeStampToDateTime();
+            var dateTimeOffset2 = timestamp2.UnixTimeStampToDateTime();
+            return (int)(dateTimeOffset2 - dateTimeOffset1).TotalMinutes;
+        }
+
+
     }
 }
