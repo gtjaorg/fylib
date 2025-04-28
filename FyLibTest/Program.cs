@@ -20,9 +20,16 @@ namespace FyLibTest
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static  void Main(string[] args)
         {
-            Debug.WriteLine(TimeHelper.GetTimeDifferenceInDays(1740672404, 1740625604));
+            var t = Task.Run(async () => {
+
+                var http = "https://www.baidu.com".AsQuickHttp();
+                http = http.setProxy("218.95.39.53", 11508);
+                var str = await http.GetAsStringAsync();
+                Debug.WriteLine(str);
+            });
+            t.Wait();
         }
         class WxFriendInfo
         {
