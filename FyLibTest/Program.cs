@@ -25,7 +25,7 @@ namespace FyLibTest
             var t = Task.Run(async () => {
 
                 var http = "https://www.baidu.com".AsQuickHttp();
-                http = http.setProxy("218.95.39.53", 11508);
+                http = http.SetProxy("218.95.39.53", 11508);
                 var str = await http.GetAsStringAsync();
                 Debug.WriteLine(str);
             });

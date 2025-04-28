@@ -22,37 +22,31 @@ namespace FyLib.Http
     public class QuickHttp
     {
 
-        private Uri _url;
+        private readonly Uri _url;
         private string _path;
-        private HttpClient _client;
         private int _timeOut = 10000;
         private string _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0";
         private string _accept = "application/json";
-        private Map<string, string> _headers = new Map<string, string>();
+        private readonly Map<string, string> _headers = new Map<string, string>();
         private bool _allowAutoRedirect = true;
-        private Map<string, string> _querys = new Map<string, string>();
+        private readonly Map<string, string> _params = new Map<string, string>();
         private System.Security.Authentication.SslProtocols? _sslProtocols = null;
-        private WebProxy _webProxy = null;
+        private WebProxy? _webProxy = null;
         private bool _useWebProxy = false;
 
         private bool _useHttp2 = false;
         /// <summary>
         /// HttpClient客户端
         /// </summary>
-        public HttpClient Client
-        {
-            get
-            {
-                return _client;
-            }
-        }
+        public HttpClient Client { get; private set; }
+
         /// <summary>
         /// 设置代理
         /// </summary>
         /// <param name="ip"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public QuickHttp setProxy(string ip, int port)
+        public QuickHttp SetProxy(string ip, int port)
         {
             this._useWebProxy = true;
             this._webProxy = new WebProxy(ip, port);
@@ -63,7 +57,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp setSslProtocols(System.Security.Authentication.SslProtocols value)
+        public QuickHttp SetSslProtocols(System.Security.Authentication.SslProtocols value)
         {
             _sslProtocols = value;
             return this;
@@ -73,7 +67,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp useHttp2(bool value = false)
+        public QuickHttp UseHttp2(bool value = false)
         {
             this._useHttp2 = value;
             return this;
@@ -93,7 +87,7 @@ namespace FyLib.Http
                     {
                         a[0] = a[0][1..];
                     }
-                    _querys.Add(a[0], a[1]);
+                    _params.Add(a[0], a[1]);
                 });
         }
         /// <summary>
@@ -145,7 +139,7 @@ namespace FyLib.Http
         /// <returns></returns>
         public QuickHttp addQuery(string key, string value)
         {
-            _querys.Add(key, value);
+            _params.Add(key, value);
             return this;
         }
         /// <summary>
@@ -200,9 +194,9 @@ namespace FyLib.Http
             {
                 msg.Headers.Add(item.Key, item.Value);
             }
-            var result = _client.SendAsync(msg);
+            var result = Client.SendAsync(msg);
             if (!_useWebProxy)
-                Project.HttpPool.Push(_url.ToString(), _client);
+                Project.HttpPool.Push(_url.ToString(), Client);
             return result;
         }
         /// <summary>
@@ -296,9 +290,9 @@ namespace FyLib.Http
             {
                 msg.Headers.Add(item.Key, item.Value);
             }
-            var result = _client.SendAsync(msg);
+            var result = Client.SendAsync(msg);
             if (_useWebProxy == false)
-                Project.HttpPool.Push(_url.ToString(), _client);
+                Project.HttpPool.Push(_url.ToString(), Client);
             result.ConfigureAwait(false);
             return result;
         }
@@ -744,19 +738,19 @@ namespace FyLib.Http
                 }
                 handler.AutomaticDecompression = DecompressionMethods.All;
                 handler.CookieContainer = cookieContainer;
-                if (_client != null) _client.Dispose();
-                _client = new HttpClient(handler);
-                _client.BaseAddress = _url;
-                _client.Timeout = Other.GetTimeSpan(_timeOut);
-                var b = _client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
-                _client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
-                _client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
+                if (Client != null) Client.Dispose();
+                Client = new HttpClient(handler);
+                Client.BaseAddress = _url;
+                Client.Timeout = Other.GetTimeSpan(_timeOut);
+                var b = Client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
+                Client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
+                Client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
             }
             else
             {
-                _client = t;
+                Client = t;
             }
-            string query = string.Join("&", _querys.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
+            string query = string.Join("&", _params.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (query.StartsWith("?"))
             {
                 _path += query;
