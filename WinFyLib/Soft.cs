@@ -20,9 +20,9 @@ namespace WinFyLib
         {
             try
             {
-                ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMedia");
-                string result = "";
-                using (ManagementObjectCollection.ManagementObjectEnumerator managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
+                var managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMedia");
+                var result = "";
+                using (var managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
                 {
                     while (managementObjectEnumerator.MoveNext())
                     {
@@ -51,9 +51,9 @@ namespace WinFyLib
         {
             try
             {
-                ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
-                string result = "";
-                using (ManagementObjectCollection.ManagementObjectEnumerator managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
+                var managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
+                var result = "";
+                using (var managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
                 {
                     if (managementObjectEnumerator.MoveNext())
                     {
@@ -76,9 +76,9 @@ namespace WinFyLib
         {
             try
             {
-                ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
-                string result = "";
-                using (ManagementObjectCollection.ManagementObjectEnumerator managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
+                var managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
+                var result = "";
+                using (var managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
                 {
                     if (managementObjectEnumerator.MoveNext())
                     {
@@ -101,9 +101,9 @@ namespace WinFyLib
         {
             try
             {
-                ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_DisplayConfiguration");
-                string result = "";
-                using (ManagementObjectCollection.ManagementObjectEnumerator managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
+                var managementObjectSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_DisplayConfiguration");
+                var result = "";
+                using (var managementObjectEnumerator = managementObjectSearcher.Get().GetEnumerator())
                 {
                     if (managementObjectEnumerator.MoveNext())
                     {
@@ -128,7 +128,7 @@ namespace WinFyLib
             {
                 CPU = GetCPUName();
             }
-            return (CPU + GetBaseBoardID() + GetDisplayName() + GetHardDiskID()).MD5();
+            return (CPU + GetBaseBoardID() + GetDisplayName() + GetHardDiskID()).Md5();
         }
 
         /// <summary>
@@ -137,12 +137,12 @@ namespace WinFyLib
         /// <returns></returns>
         public static string? GetBaseBordID2()
         {
-            ManagementClass mc = new ManagementClass("Win32_ComputerSystemProduct");
+            var mc = new ManagementClass("Win32_ComputerSystemProduct");
             foreach (ManagementObject mo in mc.GetInstances())
             {
                 if (mo["UUID"] != null)
                 {
-                    string? str = mo["UUID"].ToString();
+                    var str = mo["UUID"].ToString();
                     return str;
                 }
             }
@@ -154,12 +154,12 @@ namespace WinFyLib
         /// <returns></returns>
         public static string? GetCpuID()
         {
-            ManagementClass mc = new ManagementClass("Win32_Processor");
+            var mc = new ManagementClass("Win32_Processor");
             foreach (ManagementObject mo in mc.GetInstances())
             {
                 if (mo["ProcessorId"] != null)
                 {
-                    string? str = mo["ProcessorId"].ToString();
+                    var str = mo["ProcessorId"].ToString();
                     return str;
                 }
             }
@@ -171,13 +171,13 @@ namespace WinFyLib
         /// <returns></returns>
         public static string GetMachineCode2()
         {
-            string? cpu = GetCpuID();
+            var cpu = GetCpuID();
             if (cpu == null) throw new Exception("获取CPU序列号失败");
-            string? bord = GetBaseBordID2();
+            var bord = GetBaseBordID2();
             if (bord == null) throw new Exception("获取主板序列号失败");
-            string disk = GetHardDiskID();
+            var disk = GetHardDiskID();
             if (disk.IsNullOrEmpty()) throw new Exception("获取硬盘序列号失败");
-            CRC32 crc = new CRC32();
+            var crc = new CRC32();
             return $"{HashHelper.Crc32_(cpu)}-{HashHelper.Crc32_(bord)}-{HashHelper.Crc32_(disk)}";
         }
     }

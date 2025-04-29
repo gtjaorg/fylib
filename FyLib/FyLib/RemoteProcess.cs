@@ -73,11 +73,11 @@ namespace FyLib.FyLib
         /// <returns></returns>
         public int readMemory(nint address)
         {
-            byte[] buffer = new byte[4]; // 读取的数据存放在这里
-            int bytesRead = 0;
+            var buffer = new byte[4]; // 读取的数据存放在这里
+            var bytesRead = 0;
             if (kernel32.ReadProcessMemory(this.ProcessHandle, address, buffer, buffer.Length, out bytesRead))
             {
-                int value = BitConverter.ToInt32(buffer, 0); // 将读取的字节转换为整数
+                var value = BitConverter.ToInt32(buffer, 0); // 将读取的字节转换为整数
                 return value;
             }
             else
@@ -93,8 +93,8 @@ namespace FyLib.FyLib
         /// <returns></returns>
         public byte[]? readMemory(nint address,int len)
         {
-            byte[] buffer = new byte[len]; // 读取的数据存放在这里
-            int bytesRead = 0;
+            var buffer = new byte[len]; // 读取的数据存放在这里
+            var bytesRead = 0;
             if (kernel32.ReadProcessMemory(this.ProcessHandle, address, buffer, buffer.Length, out bytesRead))
             {
                 return buffer;
@@ -116,7 +116,7 @@ namespace FyLib.FyLib
             if (data == null) return "";
             int FindIndex(byte[] array)
             {
-                for (int i = 0; i < array.Length - 1; i += 2)
+                for (var i = 0; i < array.Length - 1; i += 2)
                 {
                     if (array[i] == 0x00 && i + 1 < array.Length && array[i + 1] == 0x00)
                     {
@@ -125,8 +125,8 @@ namespace FyLib.FyLib
                 }
                 return array.Length; // 如果未找到连续的 00 00 序列，则返回数组的长度
             }
-            int index = FindIndex(data);// 查找第一个 00 00 字节的索引
-            byte[] truncatedData = new byte[index]; // 创建一个新的字节数组，长度为第一个 00 字节的索引
+            var index = FindIndex(data);// 查找第一个 00 00 字节的索引
+            var truncatedData = new byte[index]; // 创建一个新的字节数组，长度为第一个 00 字节的索引
             Array.Copy(data, truncatedData, index);
 
             var str  = Encoding.Unicode.GetString(truncatedData);
@@ -162,7 +162,7 @@ namespace FyLib.FyLib
         public bool writeMemory(nint add, int value)
         {
             var buff = BitConverter.GetBytes(value);
-            var b = kernel32.WriteProcessMemory(ProcessHandle, add, buff, 4, out int len);
+            var b = kernel32.WriteProcessMemory(ProcessHandle, add, buff, 4, out var len);
             return b;
         }
         /// <summary>
@@ -174,7 +174,7 @@ namespace FyLib.FyLib
         /// <returns></returns>
         public bool writeMemory(nint add, byte[] value)
         {
-            var b = kernel32.WriteProcessMemory(ProcessHandle, add, value, (uint)value.Length, out int ok);
+            var b = kernel32.WriteProcessMemory(ProcessHandle, add, value, (uint)value.Length, out var ok);
             return b;
         }
         /// <summary>

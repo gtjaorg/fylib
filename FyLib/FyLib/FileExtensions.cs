@@ -55,7 +55,7 @@ namespace FyLib
                     ".mp3",".aac",".wav",".mp4",".avi",".mov",".mkv",".flv",".wmv",".jpg",".jpeg",".png", ".bmp",".gif"
                 };
             }
-            string extension = Path.GetExtension(filePath).ToLower();
+            var extension = Path.GetExtension(filePath).ToLower();
             return MediaExtensions.Contains(extension);
         }
         /// <summary>
@@ -66,9 +66,9 @@ namespace FyLib
         public static string? GetLength(this string filePath)
         {
             if (filePath.IsFile() == false) return null;
-            FileInfo fileInfo = new FileInfo(filePath);
-            long fileSizeInBytes = fileInfo.Length;
-            string fileSizeFormatted = FormatFileSize(fileSizeInBytes);
+            var fileInfo = new FileInfo(filePath);
+            var fileSizeInBytes = fileInfo.Length;
+            var fileSizeFormatted = FormatFileSize(fileSizeInBytes);
             return fileSizeFormatted;
         }
         /// <summary>
@@ -79,7 +79,7 @@ namespace FyLib
         public static string FormatFileSize(this long fileSizeInBytes)
         {
             string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-            int order = 0;
+            var order = 0;
             double size = fileSizeInBytes;
 
             while (size >= 1024 && order < sizes.Length - 1)

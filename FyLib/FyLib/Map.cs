@@ -2,29 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>
+namespace FyLib
+{
+    /// <summary>
 /// 线程安全字典
 /// </summary>
 /// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TValue"></typeparam>
-public class Map<TKey, TValue>
+public class Map<TKey, TValue> where TKey : notnull
 {
-    private ConcurrentDictionary<TKey, TValue> maps = new ConcurrentDictionary<TKey, TValue>();
+    private readonly ConcurrentDictionary<TKey, TValue> _maps = new ConcurrentDictionary<TKey, TValue>();
 
     /// <summary>
     /// 所有的Key
     /// </summary>
-    public List<TKey> keys => maps.Keys.ToList();
+    public List<TKey> Keys => _maps.Keys.ToList();
 
     /// <summary>
     /// 所有的Value
     /// </summary>
-    public List<TValue> values => maps.Values.ToList();
+    public List<TValue> Values => _maps.Values.ToList();
 
     /// <summary>
     /// 数量
     /// </summary>
-    public int count => maps.Count;
+    public int Count => _maps.Count;
 
     /// <summary>
     /// 初始化
@@ -40,8 +42,8 @@ public class Map<TKey, TValue>
     /// <param name="value"></param>
     public void Add(TKey key, TValue value)
     {
-        TValue value2 = value;
-        maps.AddOrUpdate(key, value2, (TKey k, TValue v) => value2);
+        var value2 = value;
+        _maps.AddOrUpdate(key, value2, (TKey k, TValue v) => value2);
     }
 
     /// <summary>
@@ -51,8 +53,7 @@ public class Map<TKey, TValue>
     /// <returns></returns>
     public bool Remove(TKey key)
     {
-        TValue value;
-        return maps.TryRemove(key, out value);
+        return _maps.TryRemove(key, out var value);
     }
 
     /// <summary>
@@ -60,10 +61,9 @@ public class Map<TKey, TValue>
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public TValue GetValue(TKey key)
+    public TValue? GetValue(TKey key)
     {
-        TValue value = default;
-        maps.TryGetValue(key, out value);
+        _maps.TryGetValue(key, out var value);
         return value;
     }
 
@@ -75,8 +75,8 @@ public class Map<TKey, TValue>
     /// <returns></returns>
     public bool SetValue(TKey key, TValue value)
     {
-        TValue value2 = value;
-        return maps.AddOrUpdate(key, value2, (TKey k, TValue v) => value2)?.Equals(value2) ?? false;
+        var value2 = value;
+        return _maps.AddOrUpdate(key, value2, (TKey k, TValue v) => value2)?.Equals(value2) ?? false;
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class Map<TKey, TValue>
     /// <returns></returns>
     public List<KeyValuePair<TKey, TValue>> ToList()
     {
-        return [.. maps];
+        return [.. _maps];
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class Map<TKey, TValue>
     /// </summary>
     public void Clear()
     {
-        maps.Clear();
+        _maps.Clear();
     }
 
     /// <summary>
@@ -101,6 +101,8 @@ public class Map<TKey, TValue>
     /// </summary>
     ~Map()
     {
-        maps.Clear();
+        _maps.Clear();
     }
 }
+}
+

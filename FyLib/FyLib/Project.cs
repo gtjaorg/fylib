@@ -41,13 +41,13 @@ public static class Project
         }
         try
         {
-            string text = AppDomain.CurrentDomain.BaseDirectory + "config\\";
+            var text = AppDomain.CurrentDomain.BaseDirectory + "config\\";
             if (!Directory.Exists(text))
             {
                 Directory.CreateDirectory(text);
             }
-            string path = text + "App.Config";
-            string contents = JsonConvert.SerializeObject(config);
+            var path = text + "App.Config";
+            var contents = JsonConvert.SerializeObject(config);
             File.WriteAllText(path, contents);
         }
         catch (Exception)
@@ -63,12 +63,12 @@ public static class Project
     /// <returns></returns>
     public static T? ReadConfig<T>()
     {
-        string text = AppDomain.CurrentDomain.BaseDirectory + "config\\";
+        var text = AppDomain.CurrentDomain.BaseDirectory + "config\\";
         if (!Directory.Exists(text))
         {
             return default;
         }
-        string path = text + "App.Config";
+        var path = text + "App.Config";
         if (!File.Exists(path))
         {
             return default;

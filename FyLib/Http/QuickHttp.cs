@@ -8,12 +8,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using FyLib.FyLib;
 
-using static Winhttp;
 
 namespace FyLib.Http
 {
@@ -185,7 +183,7 @@ namespace FyLib.Http
         public Task<HttpResponseMessage> GetAsync()
         {
             PackClient();
-            HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Get, _path);
+            var msg = new HttpRequestMessage(HttpMethod.Get, _path);
             if (this._useHttp2)
             {
                 msg.Version = new Version(2, 0);
@@ -280,7 +278,7 @@ namespace FyLib.Http
         private Task<HttpResponseMessage> PostAsync(HttpContent? content = null)
         {
             PackClient();
-            HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Post, _path);
+            var msg = new HttpRequestMessage(HttpMethod.Post, _path);
             if (_useHttp2)
             {
                 msg.Version = new Version(2, 0);
@@ -376,12 +374,12 @@ namespace FyLib.Http
         public async Task<HttpResponseMessage> PostAsync(JToken JToken, Encoding? encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
-            JsonSerializerSettings val = new JsonSerializerSettings
+            var val = new JsonSerializerSettings
             {
                 NullValueHandling = (NullValueHandling)1
             };
             if (JToken == null) JToken = JToken.Parse("{}");
-            string str = JsonConvert.SerializeObject(JToken, val);
+            var str = JsonConvert.SerializeObject(JToken, val);
             var content = new StringContent(str, encoding, MediaTypeHeaderValue.Parse("application/json"));
             try
             {
@@ -468,7 +466,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null) return JToken.Parse("{}");
-            JToken obj = JToken.Parse(str);
+            var obj = JToken.Parse(str);
             return obj;
         }
         /// <summary>
@@ -507,7 +505,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null) return JToken.Parse("{}");
-            JToken obj = JToken.Parse(str);
+            var obj = JToken.Parse(str);
             return obj;
         }
         /// <summary>
@@ -544,7 +542,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body);
             if (str == null) return JToken.Parse("{}");
-            JToken obj = JToken.Parse(str);
+            var obj = JToken.Parse(str);
             return obj;
         }
         /// <summary>
@@ -583,7 +581,7 @@ namespace FyLib.Http
         {
             var str = await PostAsStringAsync(body, encoding);
             if (str == null) return JToken.Parse("{}");
-            JToken obj = JToken.Parse(str);
+            var obj = JToken.Parse(str);
             return obj;
         }
         /// <summary>
@@ -712,7 +710,7 @@ namespace FyLib.Http
         /// <summary>
         /// Cookie 容器
         /// </summary>
-        public CookieContainer CookieContainer = new CookieContainer();
+        public readonly CookieContainer CookieContainer = new CookieContainer();
         private void PackClient()
         {
             HttpClient? t = null;
@@ -722,7 +720,7 @@ namespace FyLib.Http
             }
             if (t == null)
             {
-                SocketsHttpHandler handler = new SocketsHttpHandler();
+                var handler = new SocketsHttpHandler();
                 handler.AllowAutoRedirect = _allowAutoRedirect;
                 if (_useHttp2)
                 {
@@ -754,7 +752,7 @@ namespace FyLib.Http
             {
                 Client = t;
             }
-            string query = string.Join("&", _params.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
+            var query = string.Join("&", _params.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (query.StartsWith("?"))
             {
                 _path += query;

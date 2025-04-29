@@ -13,34 +13,29 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace FyLibTest
 {
-    internal class Program
+    internal static class Program
     {
-        static  void Main(string[] args)
+        private static void Main(string[] args)
         {
-            var t = Task.Run(async () => {
-
-                var http = "https://www.baidu.com".AsQuickHttp();
-                http = http.SetProxy("218.95.39.53", 11508);
-                var str = await http.GetAsStringAsync();
-                Debug.WriteLine(str);
-            });
-            t.Wait();
-        }
-        class WxFriendInfo
-        {
-            public string nick;
-            public string name;
-            public string id;
-            public string v3;
-            public string tag;
-            public string head;
-            public override string ToString()
-            {
-                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
-            }
+            StringTest();
         }
 
-
-
+        private static void StringTest()
+        {
+            //生成对StringHelper类的所有方法的测试
+            var str = "127.0.0.0";
+            Debug.WriteLine(str.IsIp());
+            str = "^hello world^";
+            Debug.WriteLine(str.Fillter());
+            Debug.WriteLine(str.RemoveTag("^"));
+            str = "asdkahsdjhttps://www.baidu.com";
+            Debug.WriteLine(str.GetUrl());
+            str = "02FE";
+            Debug.WriteLine(str.ToBytes().Format());
+            Debug.WriteLine(str.GetBytes().Format());
+            Debug.WriteLine(str.Base64());
+            Debug.WriteLine(str.IsNumeric());
+            Debug.WriteLine("878990".IsNumeric());
+        }
     }
 }

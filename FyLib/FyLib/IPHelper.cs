@@ -31,14 +31,14 @@ namespace FyLib
             {
                 return false;
             }
-            string[] array = IP.Split('.');
+            var array = IP.Split('.');
             if (array.Length != 4)
             {
                 return false;
             }
-            for (int i = 0; i < array.Length; i++)
+            for (var i = 0; i < array.Length; i++)
             {
-                if (!int.TryParse(array[i], out int value) || value < 0 || value > 255)
+                if (!int.TryParse(array[i], out var value) || value < 0 || value > 255)
                 {
                     return false;
                 }
@@ -52,7 +52,7 @@ namespace FyLib
         /// <returns></returns>
         public static bool IsInternalIP(IPAddress ipAddress)
         {
-            byte[] ipBytes = ipAddress.GetAddressBytes();
+            var ipBytes = ipAddress.GetAddressBytes();
 
             // 根据IPv4地址范围进行判断，你也可以根据需要添加IPv6的判断
             if (ipBytes[0] == 10 ||
@@ -72,8 +72,8 @@ namespace FyLib
         {
             try
             {
-                IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName());
-                for (int i = 0; i < hostEntry.AddressList.Length; i = checked(i + 1))
+                var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
+                for (var i = 0; i < hostEntry.AddressList.Length; i = checked(i + 1))
                 {
                     if (hostEntry.AddressList[i].AddressFamily == AddressFamily.InterNetwork)
                     {
@@ -93,8 +93,8 @@ namespace FyLib
         /// <returns></returns>
         public static string GetLocalIP()
         {
-            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface networkInterface in networkInterfaces)
+            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (var networkInterface in networkInterfaces)
             {
                 // 过滤掉虚拟接口和回环接口
                 if (networkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
@@ -103,10 +103,10 @@ namespace FyLib
                 {
                     continue;
                 }
-                IPInterfaceProperties ipProperties = networkInterface.GetIPProperties();
-                foreach (UnicastIPAddressInformation ipInfo in ipProperties.UnicastAddresses)
+                var ipProperties = networkInterface.GetIPProperties();
+                foreach (var ipInfo in ipProperties.UnicastAddresses)
                 {
-                    IPAddress ipAddress = ipInfo.Address;
+                    var ipAddress = ipInfo.Address;
                     // 检查IP地址是否属于内网范围
                     if (IsInternalIP(ipAddress))
                     {
@@ -126,11 +126,11 @@ namespace FyLib
             {
                 return null;
             }
-            string[] ipAddressParts = ip.Split('.');
+            var ipAddressParts = ip.Split('.');
 
-            byte[] ipAddressArray =new byte[4];
+            var ipAddressArray =new byte[4];
 
-            for (int i = 0; i < ipAddressParts.Length; i++)
+            for (var i = 0; i < ipAddressParts.Length; i++)
             {
                 ipAddressArray[i] = byte.Parse(ipAddressParts[i]);
             }
@@ -146,9 +146,9 @@ namespace FyLib
             var bin = IPtoBytes(ip);
             if (bin == null) return null;
             var ls = new List<string>();
-            for (int i = 0; i < 255; i++)
+            for (var i = 0; i < 255; i++)
             {
-                string temp = $"{bin[0]}.{bin[1]}.{bin[2]}.{i + 1}";
+                var temp = $"{bin[0]}.{bin[1]}.{bin[2]}.{i + 1}";
                 ls.Add(temp);
             }
             return ls;
@@ -167,11 +167,11 @@ namespace FyLib
             var end = IPtoBytes(EndIP);
             var start = IPtoBytes(StartIP);
             if(end ==null || start ==null) return null;
-            int len =end.ToInt() - start.ToInt();
+            var len =end.ToInt() - start.ToInt();
             if(len<0) return null;  
-            for (int i = 0; i < len+1; i++)
+            for (var i = 0; i < len+1; i++)
             {
-                string temp = $"{start[0]}.{start[1]}.{start[2]}.{start[3]+i}";
+                var temp = $"{start[0]}.{start[1]}.{start[2]}.{start[3]+i}";
                 ls.Add(temp);
             }
             return ls;
@@ -188,7 +188,7 @@ namespace FyLib
             try
             {
                 // 发送ping请求，包含超时设置
-                PingReply reply = await ping.SendPingAsync(host, timeout);
+                var reply = await ping.SendPingAsync(host, timeout);
                 return reply.Status == IPStatus.Success;
             }
             catch (PingException)
@@ -211,13 +211,13 @@ namespace FyLib
             socket.Connect("8.8.8.8", 65530);
 
             // 获取本地端点的信息，这应该是操作系统为了连接到远程端点所选择的本地IP地址
-            IPEndPoint? endPoint = socket.LocalEndPoint as IPEndPoint;
+            var endPoint = socket.LocalEndPoint as IPEndPoint;
 
             // 获取本地IP地址
-            string? localIP = (endPoint?.Address.ToString()) ?? throw new InvalidOperationException("Local IP Address Not Found!");
+            var localIP = (endPoint?.Address.ToString()) ?? throw new InvalidOperationException("Local IP Address Not Found!");
 
             // 找到IP地址字符串中最后一个'.'的位置
-            int lastIndex = localIP.LastIndexOf('.');
+            var lastIndex = localIP.LastIndexOf('.');
 
             // 获取基础IP地址，即去掉最后一部分的IP地址
             return localIP[..lastIndex];

@@ -28,15 +28,15 @@ namespace FyLib.NicControl
         /// </summary>
         public static void GetList()
         {
-            SelectQuery query = new SelectQuery("select * from Win32_NetworkAdapter where PhysicalAdapter=True and AdapterType!=null");
-            ManagementObjectCollection managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
+            var query = new SelectQuery("select * from Win32_NetworkAdapter where PhysicalAdapter=True and AdapterType!=null");
+            var managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
             NicList.Clear();
             if (managementObjectCollection.Count > 0)
             {
-                foreach (ManagementBaseObject item in managementObjectCollection)
+                foreach (var item in managementObjectCollection)
                 {
                     Debug.WriteLine(item["AdapterType"]);
-                    NicInfo nicInfo = new NicInfo();
+                    var nicInfo = new NicInfo();
                     if (item["NetConnectionID"] != null)
                     {
                         nicInfo.Name = item["NetConnectionID"].ToString();
@@ -57,7 +57,7 @@ namespace FyLib.NicControl
             {
                 return;
             }
-            foreach (NicInfo nic in NicList)
+            foreach (var nic in NicList)
             {
                 query = new SelectQuery("select * from Win32_NetworkAdapterConfiguration where Index = " + nic.Index);
                 managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
@@ -82,7 +82,7 @@ namespace FyLib.NicControl
             {
                 GetList();
             }
-            foreach (NicInfo nic2 in NicList)
+            foreach (var nic2 in NicList)
             {
                 if (nic2.InterfaceIndex == nic.InterfaceIndex)
                 {
@@ -107,7 +107,7 @@ namespace FyLib.NicControl
             {
                 GetList();
             }
-            foreach (NicInfo nic in NicList)
+            foreach (var nic in NicList)
             {
                 if (nic.Name == NicName)
                 {
@@ -131,9 +131,9 @@ namespace FyLib.NicControl
             {
                 return false;
             }
-            RegistryKey localMachine = Registry.LocalMachine;
-            string name = "SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters\\Interfaces\\" + item.GUID.ToLower();
-            RegistryKey registryKey = localMachine.OpenSubKey(name, writable: true);
+            var localMachine = Registry.LocalMachine;
+            var name = "SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters\\Interfaces\\" + item.GUID.ToLower();
+            var registryKey = localMachine.OpenSubKey(name, writable: true);
             registryKey.SetValue("InterfaceMetric", 100);
             registryKey.Close();
             localMachine.Close();
@@ -150,10 +150,10 @@ namespace FyLib.NicControl
             {
                 return 0;
             }
-            RegistryKey localMachine = Registry.LocalMachine;
-            string name = "SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters\\Interfaces\\" + item.GUID.ToLower();
-            RegistryKey registryKey = localMachine.OpenSubKey(name, writable: true);
-            object value = registryKey.GetValue("InterfaceMetric");
+            var localMachine = Registry.LocalMachine;
+            var name = "SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters\\Interfaces\\" + item.GUID.ToLower();
+            var registryKey = localMachine.OpenSubKey(name, writable: true);
+            var value = registryKey.GetValue("InterfaceMetric");
             registryKey.SetValue("InterfaceMetric", 100);
             registryKey.Close();
             localMachine.Close();
@@ -170,13 +170,13 @@ namespace FyLib.NicControl
             {
                 return false;
             }
-            SelectQuery query = new SelectQuery("select * from Win32_NetworkAdapter where Index = " + item.Index);
-            ManagementObjectCollection managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
+            var query = new SelectQuery("select * from Win32_NetworkAdapter where Index = " + item.Index);
+            var managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
             if (managementObjectCollection == null)
             {
                 return false;
             }
-            using (ManagementObjectCollection.ManagementObjectEnumerator managementObjectEnumerator = managementObjectCollection.GetEnumerator())
+            using (var managementObjectEnumerator = managementObjectCollection.GetEnumerator())
             {
                 if (managementObjectEnumerator.MoveNext())
                 {
@@ -196,13 +196,13 @@ namespace FyLib.NicControl
             {
                 return false;
             }
-            SelectQuery query = new SelectQuery("select * from Win32_NetworkAdapter where Index = " + item.Index);
-            ManagementObjectCollection managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
+            var query = new SelectQuery("select * from Win32_NetworkAdapter where Index = " + item.Index);
+            var managementObjectCollection = new ManagementObjectSearcher(managementScope, query).Get();
             if (managementObjectCollection == null)
             {
                 return false;
             }
-            using (ManagementObjectCollection.ManagementObjectEnumerator managementObjectEnumerator = managementObjectCollection.GetEnumerator())
+            using (var managementObjectEnumerator = managementObjectCollection.GetEnumerator())
             {
                 if (managementObjectEnumerator.MoveNext())
                 {

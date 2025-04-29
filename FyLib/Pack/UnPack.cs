@@ -60,7 +60,7 @@ namespace FyLib.Pack
         /// <param name="value">16进制文本</param>
         public Unpack(string value)
         {
-            byte[] array = value.ToBytes();
+            var array = value.ToBytes();
             MS = new MemoryStream(array.Length);
             BW = new BinaryWriter(MS);
             BW.Write(array);
@@ -111,7 +111,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public byte GetByte()
         {
-            byte[] array = new byte[1];
+            var array = new byte[1];
             MS.Read(array, 0, 1);
             return array[0];
         }
@@ -122,7 +122,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public short GetShort()
         {
-            byte[] array = new byte[2];
+            var array = new byte[2];
             MS.Read(array, 0, 2);
             return BytesHelper.ToShort(array);
         }
@@ -133,7 +133,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public uint GetUint()
         {
-            byte[] array = new byte[4];
+            var array = new byte[4];
             MS.Read(array, 0, 4);
             return array.ToUInt();
         }
@@ -144,7 +144,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public long GetLong()
         {
-            byte[] array = new byte[8];
+            var array = new byte[8];
             MS.Read(array, 0, 8);
             return array.ToLong();
         }
@@ -155,7 +155,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public int GetInt()
         {
-            byte[] array = new byte[4];
+            var array = new byte[4];
             MS.Read(array, 0, 4);
             return array.ToInt();
         }
@@ -171,7 +171,7 @@ namespace FyLib.Pack
             {
                 return new byte[0];
             }
-            byte[] array = new byte[len];
+            var array = new byte[len];
             MS.Read(array, 0, len);
             return array;
         }
@@ -182,7 +182,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public byte[] GetToken()
         {
-            short @short = GetShort();
+            var @short = GetShort();
             return GetBin(@short);
         }
 
@@ -194,7 +194,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public T Get<T>(int len = 0)
         {
-            T result = default(T);
+            var result = default(T);
             if (typeof(T) == typeof(byte))
             {
                 return (T)(object)GetByte();

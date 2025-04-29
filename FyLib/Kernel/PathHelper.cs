@@ -14,7 +14,7 @@ namespace FyLib
         /// <returns></returns>
         public static bool IsMediaFile(string filePath)
         {
-            string extension = Path.GetExtension(filePath).ToLower();
+            var extension = Path.GetExtension(filePath).ToLower();
             if (extension == ".mp3" || extension == ".aac" || extension == ".wav" ||
                 extension == ".mp4" || extension == ".avi" || extension == ".mov" ||
                 extension == ".mkv" || extension == ".flv" || extension == ".wmv" ||

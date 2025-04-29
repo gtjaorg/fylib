@@ -52,7 +52,7 @@ namespace FyLib
         /// <returns></returns>
         public static string getString(string section, string key, string def, string filename)
         {
-            StringBuilder sb = new StringBuilder(4096);
+            var sb = new StringBuilder(4096);
             GetPrivateProfileString(section, key, def, sb, 4096, filename);
             return sb.ToString();
         }
