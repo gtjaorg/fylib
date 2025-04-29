@@ -1,6 +1,8 @@
 ﻿
 
 // BytesHelper
+using FyLib;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +28,26 @@ public static class BytesHelper
         Buffer.BlockCopy(bin2, 0, result, bin.Length, bin2.Length);
         return result;
     }
-
+    /// <summary>
+    /// Gzip压缩
+    /// </summary>
+    /// <param name="bytes"></param>
+    /// <returns></returns>
+    public static byte[] GzipEncode(this byte[] bytes)
+    {
+        var result = Gzip.Encode(bytes);
+        return result;
+    }
+    /// <summary>
+    /// Gzip解压缩
+    /// </summary>
+    /// <param name="bytes"></param>
+    /// <returns></returns>
+    public static byte[] GzipDecode(this byte[] bytes)
+    {
+        var result = Gzip.Decode(bytes);
+        return result;
+    }
     /// <summary>
     /// 获取字节数组指针
     /// </summary>

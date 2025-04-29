@@ -428,14 +428,9 @@ public static class StringHelper
     /// <returns></returns>
     public static string MD5(this string str)
     {
-        var mD5CryptoServiceProvider = System.Security.Cryptography.MD5.Create();
         byte[] bytes = Encoding.Default.GetBytes(str);
-        byte[] array = mD5CryptoServiceProvider.ComputeHash(bytes);
-        string text = "";
-        for (int i = 0; i < array.Length; i = checked(i + 1))
-        {
-            text += array[i].ToString("x").PadLeft(2, '0');
-        }
+        byte[] array = System.Security.Cryptography.MD5.HashData(bytes);
+        string text =Convert.ToHexString(array);
         return text;
     }
 

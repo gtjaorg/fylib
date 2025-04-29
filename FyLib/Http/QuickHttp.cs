@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using static Winhttp;
@@ -33,12 +34,11 @@ namespace FyLib.Http
         private System.Security.Authentication.SslProtocols? _sslProtocols = null;
         private WebProxy? _webProxy = null;
         private bool _useWebProxy = false;
-
         private bool _useHttp2 = false;
         /// <summary>
         /// HttpClient客户端
         /// </summary>
-        public HttpClient Client { get; private set; }
+        public HttpClient? Client { get; private set; }
 
         /// <summary>
         /// 设置代理
@@ -95,7 +95,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="timeout">毫秒</param>
         /// <returns></returns>
-        public QuickHttp setTimeout(int timeout)
+        public QuickHttp SetTimeout(int timeout)
         {
             this._timeOut = timeout;
             return this;
@@ -105,7 +105,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="userAgent"></param>
         /// <returns></returns>
-        public QuickHttp setUserAgent(string userAgent)
+        public QuickHttp SetUserAgent(string userAgent)
         {
             this._userAgent = userAgent;
             return this;
@@ -115,7 +115,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="accept"></param>
         /// <returns></returns>
-        public QuickHttp setAccept(string accept)
+        public QuickHttp SetAccept(string accept)
         {
             this._accept = accept;
             return this;
@@ -126,7 +126,7 @@ namespace FyLib.Http
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp addHeader(string key, string value)
+        public QuickHttp AddHeader(string key, string value)
         {
             _headers.Add(key, value);
             return this;
@@ -137,7 +137,7 @@ namespace FyLib.Http
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp addQuery(string key, string value)
+        public QuickHttp AddQuery(string key, string value)
         {
             _params.Add(key, value);
             return this;
@@ -147,7 +147,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public QuickHttp removeHeader(string key)
+        public QuickHttp RemoveHeader(string key)
         {
             _headers.Remove(key);
             return this;
@@ -157,7 +157,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp setAutoRedirect(bool value)
+        public QuickHttp SetAutoRedirect(bool value)
         {
             _allowAutoRedirect = value;
             return this;
@@ -167,9 +167,9 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public QuickHttp setReferer(string value)
+        public QuickHttp SetReferer(string value)
         {
-            addHeader("Referer", value);
+            AddHeader("Referer", value);
             return this;
         }
         /// <summary>
@@ -346,7 +346,7 @@ namespace FyLib.Http
         public async Task<HttpResponseMessage> PostAsync(object body, Encoding? encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
-            var content = new StringContent(JsonConvert.SerializeObject(body), encoding);
+            var content = new StringContent(JsonConvert.SerializeObject(body), encoding, "application/json");
             try
             {
                 var result = await PostAsync(content);
@@ -709,8 +709,10 @@ namespace FyLib.Http
             return JsonConvert.DeserializeObject<T>(str);
         }
         #endregion
-
-        public CookieContainer cookieContainer = new CookieContainer();
+        /// <summary>
+        /// Cookie 容器
+        /// </summary>
+        public CookieContainer CookieContainer = new CookieContainer();
         private void PackClient()
         {
             HttpClient? t = null;
@@ -736,11 +738,13 @@ namespace FyLib.Http
                     handler.Proxy = _webProxy;
                     handler.UseProxy = _useWebProxy;
                 }
+               
                 handler.AutomaticDecompression = DecompressionMethods.All;
-                handler.CookieContainer = cookieContainer;
+                handler.CookieContainer = CookieContainer;
                 if (Client != null) Client.Dispose();
                 Client = new HttpClient(handler);
                 Client.BaseAddress = _url;
+               
                 Client.Timeout = Other.GetTimeSpan(_timeOut);
                 var b = Client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
                 Client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
@@ -768,7 +772,7 @@ namespace FyLib.Http
         {
             get
             {
-                var cookieCollection = cookieContainer.GetCookies(_url);
+                var cookieCollection = CookieContainer.GetCookies(_url);
                 var cookieHeader = new StringBuilder();
                 foreach (Cookie cookie in cookieCollection)
                 {
