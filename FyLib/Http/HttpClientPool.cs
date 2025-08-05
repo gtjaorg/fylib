@@ -18,8 +18,6 @@ private Lock Lock = new ();
 #else
         private object Lock = new object();
 #endif
-
-
         private List<HttpClientInfo> infos = new List<HttpClientInfo>();
         /// <summary>
         /// 队列长度
