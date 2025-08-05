@@ -27,7 +27,7 @@ namespace FyLib
                 // 将解压缩的数据写入 decompressedStream
                 gzipStream.CopyTo(decompressedStream);
                 // 将解压缩后的字节数组转换为字符串
-                byte[] decompressedData = decompressedStream.ToArray();
+                var decompressedData = decompressedStream.ToArray();
                 return decompressedData;
             }
         }

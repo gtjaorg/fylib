@@ -75,9 +75,9 @@ namespace FyLib.Pack
             }
             if (writer.FreeCapacity < value.Length)
             {
-                ReadOnlySpan<byte> writtenSpan = writer.WrittenSpan;
-                int num = pos;
-                byte[] array = writtenSpan.Slice(num, writer.WrittenCount - num).ToArray();
+                var writtenSpan = writer.WrittenSpan;
+                var num = pos;
+                var array = writtenSpan.Slice(num, writer.WrittenCount - num).ToArray();
                 Init();
                 writer.Write(array.AsSpan());
                 pos = 0;
@@ -122,7 +122,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public ReadOnlySpan<byte> Read(int len)
         {
-            int num = checked(pos + len);
+            var num = checked(pos + len);
             if (writer == null)
             {
                 Init();
@@ -134,9 +134,9 @@ namespace FyLib.Pack
             }
             try
             {
-                ReadOnlySpan<byte> result = writer.WrittenSpan;
-                int num2 = pos;
-                ReadOnlySpan<byte> readOnlySpan = result.Slice(num2, num - num2);
+                var result = writer.WrittenSpan;
+                var num2 = pos;
+                var readOnlySpan = result.Slice(num2, num - num2);
                 pos = num;
                 result = readOnlySpan;
                 return result;
@@ -154,7 +154,7 @@ namespace FyLib.Pack
         /// <returns></returns>
         public byte[] ReadBytes(int len)
         {
-            ReadOnlySpan<byte> readOnlySpan = Read(len);
+            var readOnlySpan = Read(len);
             if (readOnlySpan == null)
             {
                 return new byte[0];

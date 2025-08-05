@@ -71,7 +71,7 @@ namespace FyLib.API
             else
             {
                 code.Append("C2");
-                int value = (int)i;
+                var value = (int)i;
                 code.Append(value.ToString("X"));
             }
         }

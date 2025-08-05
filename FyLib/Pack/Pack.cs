@@ -83,12 +83,12 @@ namespace FyLib.Pack
                 }
                 else if (typeof(T) == typeof(Hex))
                 {
-                    Hex hex = (Hex)value;
+                    var hex = (Hex)value;
                     push(hex.bin);
                 }
                 else if (typeof(T) == typeof(Token))
                 {
-                    Token token = (Token)value;
+                    var token = (Token)value;
                     push(checked((short)token.leng));
                     push(token.bin);
                 }
@@ -182,7 +182,7 @@ namespace FyLib.Pack
         /// <param name="hex"></param>
         public void pushHex(string hex)
         {
-            byte[] value = hex.ToBytes();
+            var value = hex.ToBytes();
             push(value);
         }
 
@@ -207,7 +207,7 @@ namespace FyLib.Pack
             {
                 return new byte[0];
             }
-            byte[] result = MS.ToArray();
+            var result = MS.ToArray();
             if (Clear)
             {
                 MS.Position = 0L;

@@ -27,13 +27,13 @@ namespace FyLib
                 timestamp = TimeStamp();
             }
             // 将10位Unix时间戳转换为DateTime
-            DateTime date = DateTimeOffset.FromUnixTimeSeconds(timestamp).DateTime;
+            var date = DateTimeOffset.FromUnixTimeSeconds(timestamp).DateTime;
             // 获取当天的开始时间和结束时间
-            DateTime startDate = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Local);
-            DateTime endDate = new DateTime(date.Year, date.Month, date.Day, 23, 59, 59, DateTimeKind.Local);
+            var startDate = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Local);
+            var endDate = new DateTime(date.Year, date.Month, date.Day, 23, 59, 59, DateTimeKind.Local);
             // 将DateTime转换回Unix时间戳
-            int startTimestamp = (int)(new DateTimeOffset(startDate).ToUnixTimeSeconds());
-            int endTimestamp = (int)(new DateTimeOffset(endDate).ToUnixTimeSeconds());
+            var startTimestamp = (int)(new DateTimeOffset(startDate).ToUnixTimeSeconds());
+            var endTimestamp = (int)(new DateTimeOffset(endDate).ToUnixTimeSeconds());
 
             return (startTimestamp, endTimestamp);
         }
@@ -96,9 +96,9 @@ namespace FyLib
         public static long UtcTimestampToLocalTimestamp(long utcTimestamp)
         {
             // 将 UTC 时间戳转换为 DateTime
-            DateTime utcDateTime = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
+            var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
             // 将 UTC 时间转换为本地时间
-            DateTime localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
+            var localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
             // 将本地时间转换为本地时间戳（以秒为单位）
             long localTimestamp = localDateTime.LocalTimeStamp();
             return localTimestamp;
@@ -111,11 +111,11 @@ namespace FyLib
         public static int UtcTimestampToLocalTimestamp(int utcTimestamp)
         {
             // 将 UTC 时间戳转换为 DateTime
-            DateTime utcDateTime = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
+            var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
             // 将 UTC 时间转换为本地时间
-            DateTime localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
+            var localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
             // 将本地时间转换为本地时间戳（以秒为单位）
-            int localTimestamp = localDateTime.LocalTimeStamp();
+            var localTimestamp = localDateTime.LocalTimeStamp();
             return localTimestamp;
         }
         /// <summary>
@@ -126,9 +126,9 @@ namespace FyLib
         public static int LocalTimestampToUtcTimestamp(int localTimestamp)
         {
             // 将时间戳转换为 DateTime
-            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(localTimestamp).DateTime;
+            var dateTime = DateTimeOffset.FromUnixTimeSeconds(localTimestamp).DateTime;
             // 将UTC时间转换为UTC时间戳（以秒为单位）
-            int utcTimestamp = dateTime.TimeStamp();
+            var utcTimestamp = dateTime.TimeStamp();
             return utcTimestamp;
         }
         /// <summary>
@@ -139,7 +139,7 @@ namespace FyLib
         public static long LocalTimestampToUtcTimestamp(long localTimestamp)
         {
             // 将时间戳转换为 DateTime
-            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(localTimestamp).DateTime;
+            var dateTime = DateTimeOffset.FromUnixTimeSeconds(localTimestamp).DateTime;
             // 将UTC时间转换为UTC时间戳（以秒为单位）
             long utcTimestamp = dateTime.TimeStamp();
             return utcTimestamp;
@@ -154,22 +154,22 @@ namespace FyLib
         public static long GetUtcTimestampAtSpecificTime(int daysFromToday, string time)
         {
             // 尝试从提供的时间字符串中解析时间
-            if (!TimeSpan.TryParse(time, out TimeSpan parsedTime))
+            if (!TimeSpan.TryParse(time, out var parsedTime))
             {
                 throw new ArgumentException("Invalid time format. Please use HH:mm format.");
             }
             // 获取当前日期
-            DateTime today = DateTime.Today;
+            var today = DateTime.Today;
             // 设置新的日期和时间，增加天数和解析得到的小时及分钟
-            DateTime targetDateTime = today.AddDays(daysFromToday)
+            var targetDateTime = today.AddDays(daysFromToday)
                 .AddHours(parsedTime.Hours)
                 .AddMinutes(parsedTime.Minutes);
             // 获取本地时区信息
-            TimeZoneInfo localZone = TimeZoneInfo.Local;
+            var localZone = TimeZoneInfo.Local;
             // 将本地时间转换为 UTC 时间
-            DateTime utcDateTime = TimeZoneInfo.ConvertTimeToUtc(targetDateTime, localZone);
+            var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(targetDateTime, localZone);
             // 获取从1970年1月1日到 UTC 时间的时间间隔（时间戳）
-            TimeSpan elapsedTime = utcDateTime - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var elapsedTime = utcDateTime - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             // 返回时间戳（秒）
             return (long)elapsedTime.TotalSeconds;
         }
@@ -183,24 +183,20 @@ namespace FyLib
         public static bool IsTimestampGreaterThanTime(long timestamp, string compareTime)
         {
             // 将时间戳转换为 DateTime 对象（UTC时间）
-            DateTime dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
+            var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
             // 将 UTC 时间转换为本地时间
-            DateTime localDateTime = dateTime.ToLocalTime();
+            var localDateTime = dateTime.ToLocalTime();
             // 提取小时和分钟
-            int hour = localDateTime.Hour;
-            int minute = localDateTime.Minute;
+            var hour = localDateTime.Hour;
+            var minute = localDateTime.Minute;
             // 解析传入的时间字符串
-            string[] timeParts = compareTime.Split(':');
-            if (timeParts.Length != 2 || !int.TryParse(timeParts[0], out int compareHour) || !int.TryParse(timeParts[1], out int compareMinute))
+            var timeParts = compareTime.Split(':');
+            if (timeParts.Length != 2 || !int.TryParse(timeParts[0], out var compareHour) || !int.TryParse(timeParts[1], out var compareMinute))
             {
                 throw new ArgumentException("时间格式不正确，请使用 HH:mm 格式。");
             }
             // 只比较小时和分钟
-            if (hour > compareHour || (hour == compareHour && minute > compareMinute))
-            {
-                return true;
-            }
-            return false;
+            return hour > compareHour || (hour == compareHour && minute > compareMinute);
         }
         /// <summary>
         /// 判断时间戳是否小于指定时间如 10:00
@@ -212,24 +208,21 @@ namespace FyLib
         public static bool IsTimestampLessThanTime(long timestamp, string compareTime)
         {
             // 将时间戳转换为 DateTime 对象（UTC时间）
-            DateTime dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
+            var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
             // 将 UTC 时间转换为本地时间
-            DateTime localDateTime = dateTime.ToLocalTime();
+            var localDateTime = dateTime.ToLocalTime();
             // 提取小时和分钟
-            int hour = localDateTime.Hour;
-            int minute = localDateTime.Minute;
+            var hour = localDateTime.Hour;
+            var minute = localDateTime.Minute;
             // 解析传入的时间字符串
-            string[] timeParts = compareTime.Split(':');
-            if (timeParts.Length != 2 || !int.TryParse(timeParts[0], out int compareHour) || !int.TryParse(timeParts[1], out int compareMinute))
+            var timeParts = compareTime.Split(':');
+            if (timeParts.Length != 2 || !int.TryParse(timeParts[0], out var compareHour) || !int.TryParse(timeParts[1], out var compareMinute))
             {
                 throw new ArgumentException("时间格式不正确，请使用 HH:mm 格式。");
             }
+
             // 只比较小时和分钟
-            if (hour < compareHour || (hour == compareHour && minute < compareMinute))
-            {
-                return true;
-            }
-            return false;
+            return hour < compareHour || (hour == compareHour && minute < compareMinute);
         }
         /// <summary>
         /// 判断时间是否在范围内
@@ -241,25 +234,24 @@ namespace FyLib
         public static bool IsTimestampWithinTimeRange(long timestamp, string startTime, string endTime)
         {
             // 将时间戳转换为 DateTime 对象（UTC时间）
-            DateTime dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
+            var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
             // 将 UTC 时间转换为本地时间
-            DateTime localDateTime = dateTime.ToLocalTime();
+            var localDateTime = dateTime.ToLocalTime();
 
             // 获取当前时间
-            var now = localDateTime;
             // 将 StartTime 和 EndTime 转换为 TimeSpan
             var startTimeSpan = TimeSpan.ParseExact(startTime, "HH:mm", CultureInfo.InvariantCulture);
             var endTimeSpan = TimeSpan.ParseExact(endTime, "HH:mm", CultureInfo.InvariantCulture);
             // 构造当天的开始和结束时间
-            var startDateTime = now.Date + startTimeSpan;
-            var endDateTime = now.Date + endTimeSpan;
+            var startDateTime = localDateTime.Date + startTimeSpan;
+            var endDateTime = localDateTime.Date + endTimeSpan;
             // 如果结束时间小于开始时间，说明跨越了午夜，将结束时间加一天
             if (endTimeSpan < startTimeSpan)
             {
                 endDateTime = endDateTime.AddDays(1);
             }
             // 判断当前时间是否在范围内
-            return (now >= startDateTime) && (now <= endDateTime);
+            return (localDateTime >= startDateTime) && (localDateTime <= endDateTime);
         }
 
         /// <summary>
@@ -270,8 +262,8 @@ namespace FyLib
         /// <exception cref="ArgumentException"></exception>
         public static (int hour, int minute) ParseTime(string time)
         {
-            string[] timeParts = time.Split(':');
-            if (timeParts.Length != 2 || !int.TryParse(timeParts[0], out int hour) || !int.TryParse(timeParts[1], out int minute))
+            var timeParts = time.Split(':');
+            if (timeParts.Length != 2 || !int.TryParse(timeParts[0], out var hour) || !int.TryParse(timeParts[1], out var minute))
             {
                 throw new ArgumentException("时间格式不正确，请使用 HH:mm 格式。");
             }
@@ -286,12 +278,12 @@ namespace FyLib
         /// <returns>如果时间在范围内，则为 true，否则为 false。</returns>
         public static bool IsTimeInRange(string timeRange, DateTime? now = null)
         {
-            DateTime time = now ?? DateTime.Now;
+            var time = now ?? DateTime.Now;
             var times = timeRange.Split('-');
             if (times.Length != 2)
                 return false;
-            DateTime startTime = DateTime.ParseExact(times[0], "HH:mm", CultureInfo.InvariantCulture);
-            DateTime endTime = DateTime.ParseExact(times[1], "HH:mm", CultureInfo.InvariantCulture);
+            var startTime = DateTime.ParseExact(times[0], "HH:mm", CultureInfo.InvariantCulture);
+            var endTime = DateTime.ParseExact(times[1], "HH:mm", CultureInfo.InvariantCulture);
             // 将日期设置为今天
             startTime = time.Date + startTime.TimeOfDay;
             endTime = time.Date + endTime.TimeOfDay;

@@ -17,10 +17,10 @@ public static class HashHelper
             const uint polynomial = 0xedb88320;
             crcTable = new uint[256];
 
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < 256; i++)
             {
-                uint crc = (uint)i;
-                for (int j = 8; j > 0; j--)
+                var crc = (uint)i;
+                for (var j = 8; j > 0; j--)
                 {
                     if ((crc & 1) == 1)
                         crc = (crc >> 1) ^ polynomial;
@@ -37,11 +37,11 @@ public static class HashHelper
         /// <returns></returns>
         public uint GetCRC32(byte[] bytes)
         {
-            uint crcValue = 0xffffffff;
+            var crcValue = 0xffffffff;
 
-            for (int i = 0; i < bytes.Length; i++)
+            for (var i = 0; i < bytes.Length; i++)
             {
-                byte index = (byte)(((crcValue) & 0xff) ^ bytes[i]);
+                var index = (byte)(((crcValue) & 0xff) ^ bytes[i]);
                 crcValue = crcTable[index] ^ (crcValue >> 8);
             }
             return ~crcValue;
@@ -49,7 +49,7 @@ public static class HashHelper
 
         public uint GetCRC32(string str)
         {
-            byte[] bytes = Encoding.Default.GetBytes(str);
+            var bytes = Encoding.Default.GetBytes(str);
             return GetCRC32(bytes);
         }
     }
@@ -86,8 +86,8 @@ public static class HashHelper
 
         public byte[] QQTeanDecipher(byte[] arrayIn, List<byte[]> Keys)
         {
-            byte[] array = new byte[0];
-            for (int i = 0; i < Keys.Count; i = checked(i + 1))
+            var array = new byte[0];
+            for (var i = 0; i < Keys.Count; i = checked(i + 1))
             {
                 array = TeanDecipher(arrayIn, Keys[i]);
                 if (array.Length != 0)
@@ -125,12 +125,12 @@ public static class HashHelper
 
         private long getUnsignedInt(byte[] arrayIn, int offset, int len)
         {
-            long num = 0L;
-            int num2 = 0;
+            var num = 0L;
+            var num2 = 0;
             checked
             {
                 num2 = ((len <= 8) ? (offset + len) : (offset + 8));
-                for (int i = offset; i < num2; i++)
+                for (var i = offset; i < num2; i++)
                 {
                     num <<= 8;
                     num |= (ushort)(arrayIn[i] & 0xFF);
@@ -141,8 +141,8 @@ public static class HashHelper
 
         private byte[] Decipher(byte[] arrayIn, byte[] arrayKey, long offset, uint delta, uint round)
         {
-            byte[] arr = new byte[24];
-            byte[] array = new byte[8];
+            var arr = new byte[24];
+            var array = new byte[8];
             checked
             {
                 if (arrayIn.Length >= 8)
@@ -154,13 +154,13 @@ public static class HashHelper
                     delta &= 0xFFFFFFFFu;
                     long num = delta * round;
                     num &= 0xFFFFFFFFu;
-                    long num2 = getUnsignedInt(arrayIn, (int)offset, 4);
-                    long num3 = getUnsignedInt(arrayIn, (int)offset + 4, 4);
-                    long unsignedInt = getUnsignedInt(arrayKey, 0, 4);
-                    long unsignedInt2 = getUnsignedInt(arrayKey, 4, 4);
-                    long unsignedInt3 = getUnsignedInt(arrayKey, 8, 4);
-                    long unsignedInt4 = getUnsignedInt(arrayKey, 12, 4);
-                    for (int i = 1; i <= round; i++)
+                    var num2 = getUnsignedInt(arrayIn, (int)offset, 4);
+                    var num3 = getUnsignedInt(arrayIn, (int)offset + 4, 4);
+                    var unsignedInt = getUnsignedInt(arrayKey, 0, 4);
+                    var unsignedInt2 = getUnsignedInt(arrayKey, 4, 4);
+                    var unsignedInt3 = getUnsignedInt(arrayKey, 8, 4);
+                    var unsignedInt4 = getUnsignedInt(arrayKey, 12, 4);
+                    for (var i = 1; i <= round; i++)
                     {
                         num3 -= ((num2 << 4) + unsignedInt3) ^ (num2 + num) ^ ((num2 >> 5) + unsignedInt4);
                         num3 &= 0xFFFFFFFFu;
@@ -205,7 +205,7 @@ public static class HashHelper
 
         private byte[] QQ_Decrypt(byte[] arrayIn, byte[] arrayKey, long offset, uint delta, uint round)
         {
-            byte[] result = new byte[0];
+            var result = new byte[0];
             if (arrayIn.Length < 16 || arrayIn.Length % 8 != 0)
             {
                 return result;
@@ -216,13 +216,13 @@ public static class HashHelper
             }
             checked
             {
-                byte[] array = new byte[offset + 8];
+                var array = new byte[offset + 8];
                 arrayKey.CopyTo(Key, 0);
                 preCrypt = 0L;
                 Crypt = 0L;
                 prePlain = Decipher(arrayIn, arrayKey, offset, delta, round);
                 Pos = prePlain[0] & 7;
-                long num = arrayIn.Length - Pos - 10;
+                var num = arrayIn.Length - Pos - 10;
                 if (num <= 0)
                 {
                     return result;
@@ -242,7 +242,7 @@ public static class HashHelper
                     }
                     else if (Pos == 8)
                     {
-                        for (int i = 0; i < array.Length; i++)
+                        for (var i = 0; i < array.Length; i++)
                         {
                             array[i] = arrayIn[i];
                         }
@@ -252,7 +252,7 @@ public static class HashHelper
                         }
                     }
                 }
-                long num2 = 0L;
+                var num2 = 0L;
                 while (num != 0L)
                 {
                     if (Pos < 8)
@@ -284,7 +284,7 @@ public static class HashHelper
                     }
                     else if (Pos == 8)
                     {
-                        for (int j = 0; j < array.Length; j++)
+                        for (var j = 0; j < array.Length; j++)
                         {
                             array[j] = arrayIn[j];
                         }
@@ -356,8 +356,8 @@ public static class HashHelper
                             Plain[(int)(IntPtr)Pos] = (byte)(Plain[(int)(IntPtr)Pos] ^ Out[(int)(IntPtr)(preCrypt + Pos)]);
                         }
                     }
-                    byte[] array = Encipher(Plain, Key, delta, round);
-                    for (int i = 0; i <= 7; i++)
+                    var array = Encipher(Plain, Key, delta, round);
+                    for (var i = 0; i <= 7; i++)
                     {
                         Out[(int)(IntPtr)(Crypt + i)] = array[i];
                     }
@@ -384,8 +384,8 @@ public static class HashHelper
 
         private byte[] Encipher(byte[] arrayIn, byte[] arrayKey, long offset, uint delta, uint round)
         {
-            byte[] array = new byte[8];
-            byte[] arr = new byte[24];
+            var array = new byte[8];
+            var arr = new byte[24];
             checked
             {
                 if (arrayIn.Length >= 8)
@@ -394,15 +394,15 @@ public static class HashHelper
                     {
                         return array;
                     }
-                    long num = 0L;
+                    var num = 0L;
                     delta &= 0xFFFFFFFFu;
-                    long num2 = getUnsignedInt(arrayIn, (int)offset, 4);
-                    long num3 = getUnsignedInt(arrayIn, (int)offset + 4, 4);
-                    long unsignedInt = getUnsignedInt(arrayKey, 0, 4);
-                    long unsignedInt2 = getUnsignedInt(arrayKey, 4, 4);
-                    long unsignedInt3 = getUnsignedInt(arrayKey, 8, 4);
-                    long unsignedInt4 = getUnsignedInt(arrayKey, 12, 4);
-                    for (int i = 1; i <= round; i++)
+                    var num2 = getUnsignedInt(arrayIn, (int)offset, 4);
+                    var num3 = getUnsignedInt(arrayIn, (int)offset + 4, 4);
+                    var unsignedInt = getUnsignedInt(arrayKey, 0, 4);
+                    var unsignedInt2 = getUnsignedInt(arrayKey, 4, 4);
+                    var unsignedInt3 = getUnsignedInt(arrayKey, 8, 4);
+                    var unsignedInt4 = getUnsignedInt(arrayKey, 12, 4);
+                    for (var i = 1; i <= round; i++)
                     {
                         num += unchecked((long)delta);
                         num &= 0xFFFFFFFFu;
@@ -446,7 +446,7 @@ public static class HashHelper
                 }
                 Out = new byte[arrayIn.Length + Pos + 10];
                 Plain[0] = (byte)((Rand() & 0xF8) | Pos);
-                for (int i = 1; i <= Pos; i++)
+                for (var i = 1; i <= Pos; i++)
                 {
                     Plain[i] = (byte)(Rand() & 0xFF);
                 }
@@ -465,8 +465,8 @@ public static class HashHelper
                         Encrypt8Bytes(delta, round);
                     }
                 }
-                int num = (int)offset;
-                long num2 = 0L;
+                var num = (int)offset;
+                var num2 = 0L;
                 num2 = arrayIn.Length;
                 while (num2 > 0)
                 {
@@ -502,19 +502,19 @@ public static class HashHelper
 
         public static byte[] TeaEncipher(byte[] encrypt_data, byte[] key)
         {
-            List<byte> list = new List<byte>(encrypt_data);
-            List<byte> list2 = new List<byte>(key);
+            var list = new List<byte>(encrypt_data);
+            var list2 = new List<byte>(key);
             list.Reverse(0, 4);
             list.Reverse(4, 4);
-            uint num = smethod_0(list.GetRange(0, 4).ToArray());
-            uint num2 = smethod_0(list.GetRange(4, 4).ToArray());
-            uint num3 = smethod_0(list2.GetRange(0, 4).ToArray());
-            uint num4 = smethod_0(list2.GetRange(4, 4).ToArray());
-            uint num5 = smethod_0(list2.GetRange(8, 4).ToArray());
-            uint num6 = smethod_0(list2.GetRange(12, 4).ToArray());
-            uint num7 = 16u;
-            uint num8 = 0u;
-            uint num9 = 2654435769u;
+            var num = smethod_0(list.GetRange(0, 4).ToArray());
+            var num2 = smethod_0(list.GetRange(4, 4).ToArray());
+            var num3 = smethod_0(list2.GetRange(0, 4).ToArray());
+            var num4 = smethod_0(list2.GetRange(4, 4).ToArray());
+            var num5 = smethod_0(list2.GetRange(8, 4).ToArray());
+            var num6 = smethod_0(list2.GetRange(12, 4).ToArray());
+            var num7 = 16u;
+            var num8 = 0u;
+            var num9 = 2654435769u;
             checked
             {
                 while (num7-- != 0)
@@ -540,9 +540,9 @@ public static class HashHelper
         {
             checked
             {
-                int num = ((!IncludeLength) ? (Data.Length << 2) : ((int)Data[Data.Length - 1]));
-                byte[] array = new byte[num];
-                for (int i = 0; i < num; i++)
+                var num = ((!IncludeLength) ? (Data.Length << 2) : ((int)Data[Data.Length - 1]));
+                var array = new byte[num];
+                for (var i = 0; i < num; i++)
                 {
                     array[i] = (byte)(Data[i >> 2] >> ((i & 3) << 3));
                 }
@@ -569,7 +569,7 @@ public static class HashHelper
     /// <returns></returns>
     public static byte[] MD5(string str)
     {
-        byte[] bytes = Encoding.Default.GetBytes(str);
+        var bytes = Encoding.Default.GetBytes(str);
         return MD5(bytes);
     }
     /// <summary>
@@ -579,10 +579,10 @@ public static class HashHelper
     /// <returns> String </returns>
     public static string MD5_(string str)
     {
-        byte[] bytes = Encoding.Default.GetBytes(str);
-        byte[] array = MD5(bytes);
-        string text = "";
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var bytes = Encoding.Default.GetBytes(str);
+        var array = MD5(bytes);
+        var text = "";
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             text += array[i].ToString("x").PadLeft(2, '0');
         }
@@ -595,9 +595,9 @@ public static class HashHelper
     /// <returns>String</returns>
     public static string MD5_(byte[] value)
     {
-        byte[] array = MD5(value);
-        string text = "";
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var array = MD5(value);
+        var text = "";
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             text += array[i].ToString("x").PadLeft(2, '0');
         }
@@ -702,27 +702,27 @@ public static class HashHelper
 
     public static byte[] CreateOfficial(int tzm, byte[] OffKey, byte[] bufSigPicNew, byte[] bufTGTGT)
     {
-        int num = 4;
-        int num2 = 256;
-        byte[] collection = OffKey.Md5();
-        byte[] collection2 = MD5(bufSigPicNew);
-        List<byte> list = new List<byte>(collection);
+        var num = 4;
+        var num2 = 256;
+        var collection = OffKey.Md5();
+        var collection2 = MD5(bufSigPicNew);
+        var list = new List<byte>(collection);
         list.AddRange(collection2);
-        byte[] array = list.ToArray();
+        var array = list.ToArray();
         checked
         {
-            int num3 = unchecked(tzm % 19) + 5;
-            byte[] array2 = new byte[256];
-            byte[] array3 = new byte[256];
-            for (int i = 0; i < num2; i++)
+            var num3 = unchecked(tzm % 19) + 5;
+            var array2 = new byte[256];
+            var array3 = new byte[256];
+            for (var i = 0; i < num2; i++)
             {
                 array2[i] = (byte)i;
-                int num4 = 16 + unchecked(i % 16);
+                var num4 = 16 + unchecked(i % 16);
                 array3[i] = array[num4];
             }
-            int num5 = 0;
+            var num5 = 0;
             byte b = 0;
-            for (int j = 0; j < num2; j++)
+            for (var j = 0; j < num2; j++)
             {
                 unchecked
                 {
@@ -733,7 +733,7 @@ public static class HashHelper
                 }
             }
             num5 = 0;
-            for (int k = 0; k < 16; k++)
+            for (var k = 0; k < 16; k++)
             {
                 unchecked
                 {
@@ -752,34 +752,34 @@ public static class HashHelper
             list.AddRange(MD5(bufTGTGT));
             List<byte> list2 = [.. MD5(list.ToArray())];
             byte[] array4 = [.. list2];
-            for (int l = 0; l < num3; l++)
+            for (var l = 0; l < num3; l++)
             {
                 array4 = MD5(array4);
             }
             list.RemoveRange(0, 16);
             list.InsertRange(0, array4);
-            byte[] encrypt_data = list2.GetRange(0, 8).ToArray();
-            byte[] encrypt_data2 = list2.GetRange(8, 8).ToArray();
-            byte[] array5 = new byte[16];
-            for (int m = 0; m < num; m++)
+            var encrypt_data = list2.GetRange(0, 8).ToArray();
+            var encrypt_data2 = list2.GetRange(8, 8).ToArray();
+            var array5 = new byte[16];
+            for (var m = 0; m < num; m++)
             {
-                int index = m * 16;
-                List<byte> range = list.GetRange(index, 16);
+                var index = m * 16;
+                var range = list.GetRange(index, 16);
                 range.Reverse(0, 4);
                 range.Reverse(4, 4);
                 range.Reverse(8, 4);
                 range.Reverse(12, 4);
-                List<byte> list3 = new List<byte>(QQCrypter.TeaEncipher(encrypt_data, range.ToArray()));
+                var list3 = new List<byte>(QQCrypter.TeaEncipher(encrypt_data, range.ToArray()));
                 list3.AddRange(QQCrypter.TeaEncipher(encrypt_data2, range.ToArray()));
-                for (int n = m; n < 16; n++)
+                for (var n = m; n < 16; n++)
                 {
-                    ref byte reference = ref array5[n];
+                    ref var reference = ref array5[n];
                     reference = (byte)(reference ^ list3[n]);
                 }
             }
             array5 = MD5(array5);
-            int cRC = (int)new CRC32().GetCRC32(array5);
-            List<byte> list4 = new List<byte>(array5);
+            var cRC = (int)new CRC32().GetCRC32(array5);
+            var list4 = new List<byte>(array5);
             list4.AddRange(BitConverter.GetBytes(cRC));
             return list4.ToArray();
         }
@@ -787,10 +787,10 @@ public static class HashHelper
 
     public static string sha256(string data)
     {
-        byte[] bytes = Encoding.UTF8.GetBytes(data);
-        byte[] array = SHA256.Create().ComputeHash(bytes);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var bytes = Encoding.UTF8.GetBytes(data);
+        var array = SHA256.Create().ComputeHash(bytes);
+        var stringBuilder = new StringBuilder();
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             stringBuilder.Append(array[i].ToString("X2"));
         }
@@ -799,9 +799,9 @@ public static class HashHelper
 
     public static string sha256(byte[] data)
     {
-        byte[] array = SHA256.Create().ComputeHash(data);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var array = SHA256.Create().ComputeHash(data);
+        var stringBuilder = new StringBuilder();
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             stringBuilder.Append(array[i].ToString("X2"));
         }
@@ -810,10 +810,10 @@ public static class HashHelper
 
     public static string sha1(string data)
     {
-        byte[] bytes = Encoding.UTF8.GetBytes(data);
-        byte[] array = SHA1.Create().ComputeHash(bytes);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var bytes = Encoding.UTF8.GetBytes(data);
+        var array = SHA1.Create().ComputeHash(bytes);
+        var stringBuilder = new StringBuilder();
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             stringBuilder.Append(array[i].ToString("X2"));
         }
@@ -822,9 +822,9 @@ public static class HashHelper
 
     public static string sha1(byte[] data)
     {
-        byte[] array = SHA1.Create().ComputeHash(data);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var array = SHA1.Create().ComputeHash(data);
+        var stringBuilder = new StringBuilder();
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             stringBuilder.Append(array[i].ToString("X2"));
         }
@@ -833,9 +833,9 @@ public static class HashHelper
 
     public static string sha512(byte[] data)
     {
-        byte[] array = SHA512.Create().ComputeHash(data);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var array = SHA512.Create().ComputeHash(data);
+        var stringBuilder = new StringBuilder();
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             stringBuilder.Append(array[i].ToString("X2"));
         }
@@ -844,10 +844,10 @@ public static class HashHelper
 
     public static string sha512(string data)
     {
-        byte[] bytes = Encoding.UTF8.GetBytes(data);
-        byte[] array = SHA512.Create().ComputeHash(bytes);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < array.Length; i = checked(i + 1))
+        var bytes = Encoding.UTF8.GetBytes(data);
+        var array = SHA512.Create().ComputeHash(bytes);
+        var stringBuilder = new StringBuilder();
+        for (var i = 0; i < array.Length; i = checked(i + 1))
         {
             stringBuilder.Append(array[i].ToString("X2"));
         }

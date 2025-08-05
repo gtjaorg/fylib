@@ -43,7 +43,7 @@ namespace FyLib
         {
             if (!File.Exists(fileName))
             {
-                using (FileStream fileStream = File.Create(fileName))
+                using (var fileStream = File.Create(fileName))
                 {
                     fileStream.Close();
                 }
@@ -61,11 +61,11 @@ namespace FyLib
             {
                 throw new Exception("FileName不能为空！");
             }
-            using FileStream fileStream = new FileStream(_fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite, 8, FileOptions.Asynchronous);
-            byte[] bytes = Encoding.Default.GetBytes(content + newLine);
-            bool flag = true;
+            using var fileStream = new FileStream(_fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite, 8, FileOptions.Asynchronous);
+            var bytes = Encoding.Default.GetBytes(content + newLine);
+            var flag = true;
             long num = bytes.Length;
-            long num2 = 0L;
+            var num2 = 0L;
             while (flag)
             {
                 try

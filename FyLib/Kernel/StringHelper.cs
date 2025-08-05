@@ -1,10 +1,10 @@
-﻿
+﻿// StringHelper
 
-// StringHelper
 using FyLib.Http;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 /// <summary>
 /// String扩展类
 /// </summary>
-public static class StringHelper
+public static partial class StringHelper
 {
     /// <summary>
     /// 转换为QuickHttp
@@ -22,36 +22,42 @@ public static class StringHelper
     /// <returns></returns>
     public static FyLib.Http.QuickHttp AsQuickHttp(this string str)
     {
-        QuickHttp client = new QuickHttp(str);
+        var client = new QuickHttp(str);
         return client;
     }
+
     /// <summary>
     /// 判断文本是否为IP地址
     /// </summary>
     /// <param name="str"></param>
     /// <returns></returns>
-    public static bool IsIP(this string str)
+    public static bool IsIp(this string str)
     {
         if (str.IsNullOrEmpty())
         {
             return false;
         }
-        if (!Regex.IsMatch(str, @"\d{1,3}(\.\d{1,3}){3}"))
+
+        if (!MyRegex().IsMatch(str))
         {
             return false;
         }
-        string[] array = str.Split('.');
+
+        var array = str.Split('.');
+        if (array[3].ToInt() <= 0 || array[3].ToInt() > 255) return false;
         if (array.Length != 4)
         {
             return false;
         }
-        for (int i = 0; i < array.Length; i++)
+
+        foreach (var t in array)
         {
-            if (!int.TryParse(array[i], out int value) || value < 0 || value > 255)
+            if (!int.TryParse(t, out var value) || value < 0 || value > 255)
             {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -78,18 +84,21 @@ public static class StringHelper
         {
             return str;
         }
-        string text = str.Substring(0, tag.Length);
+
+        var text = str[..tag.Length];
         checked
         {
-            string text2 = str.Substring(str.Length - tag.Length, tag.Length);
+            var text2 = str.Substring(str.Length - tag.Length, tag.Length);
             if (text == tag)
             {
                 str = str.Substring(tag.Length, str.Length - tag.Length);
             }
+
             if (text2 == tag)
             {
-                str = str.Substring(0, str.Length - tag.Length);
+                str = str[..^tag.Length];
             }
+
             return str;
         }
     }
@@ -98,26 +107,29 @@ public static class StringHelper
     /// 获取URL通配
     /// </summary>
     /// <param name="str"></param>
-    /// <param name="Regex"></param>
+    /// <param name="regex"></param>
     /// <returns></returns>
-    public static string GetUrl(this string str, string Regex = "http[s]?://(?:(?!http[s]?://)[a-zA-Z]|[0-9]|[$\\-_@.&+/]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
+    public static string? GetUrl(this string str,
+        string regex =
+            "http[s]?://(?:(?!http[s]?://)[a-zA-Z]|[0-9]|[$\\-_@.&+/]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
     {
-        IEnumerator enumerator = new Regex(Regex).Matches(str).GetEnumerator();
+        
+        var enumerator = new Regex(regex).Matches(str).GetEnumerator();
         try
         {
             if (enumerator.MoveNext())
             {
-                return ((Match)enumerator.Current).Value;
+                var temp = enumerator.Current;
+                if (temp == null) return null;
+                return ((Match)temp)?.Value;
             }
         }
         finally
         {
-            IDisposable disposable = enumerator as IDisposable;
-            if (disposable != null)
-            {
-                disposable.Dispose();
-            }
+            var disposable = enumerator as IDisposable;
+            disposable?.Dispose();
         }
+
         return null;
     }
 
@@ -133,22 +145,24 @@ public static class StringHelper
             hex = hex.Fillter();
             if (hex.Length % 2 != 0)
             {
-                return new byte[0];
+                return [];
             }
-            byte[] array = new byte[hex.Length / 2];
-            int num = 0;
+
+            var array = new byte[hex.Length / 2];
+            var num = 0;
             checked
             {
-                for (int i = 0; i < hex.Length; i += 2)
+                for (var i = 0; i < hex.Length; i += 2)
                 {
                     array[num++] = Convert.ToByte(hex.Substring(i, 2), 16);
                 }
+
                 return array;
             }
         }
         catch
         {
-            return new byte[0];
+            return [];
         }
     }
 
@@ -195,15 +209,7 @@ public static class StringHelper
             return false;
         }
 
-        foreach (char c in str)
-        {
-            if (!char.IsDigit(c))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return str.All(char.IsDigit);
     }
 
     /// <summary>
@@ -213,8 +219,7 @@ public static class StringHelper
     /// <returns></returns>
     public static bool IsNullOrEmpty(this string? str)
     {
-        if (str == null) return true;
-        return string.IsNullOrEmpty(str);
+        return str == null || string.IsNullOrEmpty(str);
     }
 
     /// <summary>
@@ -224,15 +229,17 @@ public static class StringHelper
     /// <returns></returns>
     public static int ToInt(this string str)
     {
-        int result = 0;
-        if (!str.IsNullOrEmpty() && str.IndexOf(".") > -1)
+        var result = 0;
+        if (!str.IsNullOrEmpty() && str.IndexOf('.') > -1)
         {
             str = str.Left(".");
         }
+
         if (!str.IsNullOrEmpty() && str.IsNumeric())
         {
             result = int.Parse(str);
         }
+
         return result;
     }
 
@@ -243,11 +250,12 @@ public static class StringHelper
     /// <returns></returns>
     public static uint ToUint(this string str)
     {
-        uint result = 0u;
+        var result = 0u;
         if (!str.IsNullOrEmpty() && str.IsNumeric())
         {
             result = uint.Parse(str);
         }
+
         return result;
     }
 
@@ -259,15 +267,16 @@ public static class StringHelper
     /// <returns></returns>
     public static string[] Split(this string strSource, string strSplit)
     {
-        string[] array = new string[1];
-        int num = strSource.IndexOf(strSplit, 0);
+        var array = new string[1];
+        var num = strSource.IndexOf(strSplit, 0, StringComparison.Ordinal);
         if (num < 0)
         {
             array[0] = strSource;
             return array;
         }
-        array[0] = strSource.Substring(0, num);
-        return Split(strSource.Substring(checked(num + strSplit.Length)), strSplit, array);
+
+        array[0] = strSource[..num];
+        return Split(strSource[checked(num + strSplit.Length)..], strSplit, array);
     }
 
     /// <summary>
@@ -279,18 +288,23 @@ public static class StringHelper
     /// <returns></returns>
     private static string[] Split(string strSource, string strSplit, string[] attachArray)
     {
-        checked
+        while (true)
         {
-            string[] array = new string[attachArray.Length + 1];
-            attachArray.CopyTo(array, 0);
-            int num = strSource.IndexOf(strSplit, 0);
-            if (num < 0)
+            checked
             {
-                array[attachArray.Length] = strSource;
-                return array;
+                var array = new string[attachArray.Length + 1];
+                attachArray.CopyTo(array, 0);
+                var num = strSource.IndexOf(strSplit, 0, StringComparison.Ordinal);
+                if (num < 0)
+                {
+                    array[attachArray.Length] = strSource;
+                    return array;
+                }
+
+                array[attachArray.Length] = strSource[..num];
+                strSource = strSource[(num + strSplit.Length)..];
+                attachArray = array;
             }
-            array[attachArray.Length] = strSource.Substring(0, num);
-            return Split(strSource.Substring(num + strSplit.Length), strSplit, array);
         }
     }
 
@@ -302,12 +316,13 @@ public static class StringHelper
     /// <returns></returns>
     public static string Left(this string str, string left)
     {
-        int num = str.IndexOf(left);
+        var num = str.IndexOf(left, StringComparison.Ordinal);
         if (num < 0)
         {
             return "";
         }
-        return str.Substring(0, num);
+
+        return str[..num];
     }
 
     /// <summary>
@@ -318,11 +333,7 @@ public static class StringHelper
     /// <returns></returns>
     public static string Left(this string str, int len)
     {
-        if (len > str.Length)
-        {
-            return "";
-        }
-        return str[..len];
+        return len > str.Length ? "" : str[..len];
     }
 
     /// <summary>
@@ -333,18 +344,20 @@ public static class StringHelper
     /// <returns></returns>
     public static string Right(this string str, string right)
     {
-        int num = str.IndexOf(right);
+        var num = str.IndexOf(right, StringComparison.Ordinal);
         if (num < 0)
         {
             return "";
         }
-        int length = str.Length;
+
+        var length = str.Length;
         checked
         {
             if (length - num - right.Length <= 0)
             {
                 return "";
             }
+
             return str.Substring(num + right.Length, length - (num + right.Length));
         }
     }
@@ -361,7 +374,8 @@ public static class StringHelper
         {
             return "";
         }
-        int startIndex = checked(str.Length - len);
+
+        var startIndex = checked(str.Length - len);
         return str.Substring(startIndex, len);
     }
 
@@ -374,21 +388,18 @@ public static class StringHelper
     /// <returns></returns>
     public static string Between(this string str, string left, string right)
     {
-        int num = str.IndexOf(left);
+        var num = str.IndexOf(left, StringComparison.Ordinal);
         checked
         {
-            int num2 = str.IndexOf(right, num + left.Length);
+            var num2 = str.IndexOf(right, num + left.Length, StringComparison.Ordinal);
             if (num < 0 || num2 < 0)
             {
                 return "";
             }
+
             num += left.Length;
             num2 -= num;
-            if (num < 0 || num2 < 0)
-            {
-                return "";
-            }
-            return str.Substring(num, num2);
+            return num2 < 0 ? "" : str.Substring(num, num2);
         }
     }
 
@@ -401,22 +412,24 @@ public static class StringHelper
     /// <returns>得到的字符串数组</returns>
     public static List<string> BetweenEx(this string str, string left, string right)
     {
-        List<string> list = new List<string>();
-        int num = str.IndexOf(left);
-        int length = left.Length;
+        var list = new List<string>();
+        var num = str.IndexOf(left, StringComparison.Ordinal);
+        var length = left.Length;
         checked
         {
             while (num >= 0)
             {
-                int num2 = str.IndexOf(right, num + length);
+                var num2 = str.IndexOf(right, num + length, StringComparison.Ordinal);
                 if (num2 < 0)
                 {
                     break;
                 }
-                string item = str.Substring(num + length, num2 - num - length);
+
+                var item = str.Substring(num + length, num2 - num - length);
                 list.Add(item);
-                num = str.IndexOf(left, num2 + right.Length);
+                num = str.IndexOf(left, num2 + right.Length, StringComparison.Ordinal);
             }
+
             return list;
         }
     }
@@ -426,23 +439,14 @@ public static class StringHelper
     /// </summary>
     /// <param name="str"></param>
     /// <returns></returns>
-    public static string MD5(this string str)
+    public static string Md5(this string str)
     {
-        byte[] bytes = Encoding.Default.GetBytes(str);
-        byte[] array = System.Security.Cryptography.MD5.HashData(bytes);
-        string text =Convert.ToHexString(array);
+        var bytes = Encoding.Default.GetBytes(str);
+        var array = System.Security.Cryptography.MD5.HashData(bytes);
+        var text = Convert.ToHexString(array);
         return text;
     }
 
-    /// <summary>
-    /// 取时间戳
-    /// </summary>
-    /// <returns></returns>
-    public static string TimeStamp()
-    {
-        DateTime dateTime = new DateTime(1970, 1, 1);
-        return Convert.ToString(checked(DateTime.UtcNow.Ticks - dateTime.Ticks) / 10000000);
-    }
     /// <summary>
     /// 十六进制文本转十进制
     /// </summary>
@@ -452,4 +456,7 @@ public static class StringHelper
     {
         return Convert.ToInt32(str, 16);
     }
+
+    [GeneratedRegex(@"\d{1,3}(\.\d{1,3}){3}")]
+    private static partial Regex MyRegex();
 }

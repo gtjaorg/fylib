@@ -23,11 +23,12 @@ public static class BytesHelper
     /// <returns></returns>
     public static byte[] add(byte[] bin, byte[] bin2)
     {
-        byte[] result = new byte[bin.Length + bin2.Length];
+        var result = new byte[bin.Length + bin2.Length];
         Buffer.BlockCopy(bin, 0, result, 0, bin.Length);
         Buffer.BlockCopy(bin2, 0, result, bin.Length, bin2.Length);
         return result;
     }
+    
     /// <summary>
     /// Gzip压缩
     /// </summary>
@@ -86,7 +87,7 @@ public static class BytesHelper
         {
             return false;
         }
-        for (int i = 0; i < bin1.Length; i++)
+        for (var i = 0; i < bin1.Length; i++)
         {
             if (bin1[i] != data[i])
             {
@@ -111,7 +112,7 @@ public static class BytesHelper
             }
         checked
         {
-            for (int i = 0; i <= data.Length - searchBytes.Length; i++)
+            for (var i = 0; i <= data.Length - searchBytes.Length; i++)
             {
                 if (data[i] != searchBytes[0])
                 {
@@ -121,8 +122,8 @@ public static class BytesHelper
                 {
                     return i;
                 }
-                bool flag = true;
-                for (int j = 1; j < searchBytes.Length; j++)
+                var flag = true;
+                for (var j = 1; j < searchBytes.Length; j++)
                 {
                     if (data[i + j] != searchBytes[j])
                     {
@@ -146,7 +147,7 @@ public static class BytesHelper
     /// <returns></returns>
     public static byte[] Rand(int len = 16)
     {
-        byte[] array = new byte[len];
+        var array = new byte[len];
         new Random(Guid.NewGuid().GetHashCode()).NextBytes(array);
         return array;
     }
@@ -177,10 +178,10 @@ public static class BytesHelper
     /// <returns></returns>
     public static string ToHex(this byte[] bin)
     {
-        StringBuilder stringBuilder = new StringBuilder(checked(bin.Length * 2));
+        var stringBuilder = new StringBuilder(checked(bin.Length * 2));
         try
         {
-            foreach (byte b in bin)
+            foreach (var b in bin)
             {
                 stringBuilder.Append(Convert.ToString(b, 16).PadLeft(2, '0'));
             }
@@ -199,10 +200,10 @@ public static class BytesHelper
     /// <returns></returns>
     public static string Format(this byte[] bin)
     {
-        string text = bin.ToHex();
-        int length = text.Length;
-        string text2 = "";
-        for (int i = 0; i < length / 2; i = checked(i + 1))
+        var text = bin.ToHex();
+        var length = text.Length;
+        var text2 = "";
+        for (var i = 0; i < length / 2; i = checked(i + 1))
         {
             if (i % 16 == 0 && i != 0)
             {
@@ -306,7 +307,7 @@ public static class BytesHelper
     /// </summary>
     public static int ToInt(this byte[] bin, bool IsFlip = true)
     {
-        byte[] array = bin.ToArray();
+        var array = bin.ToArray();
         if (IsFlip)
         {
             array = array.Flip();
@@ -346,20 +347,20 @@ public static class BytesHelper
         {
             return null;
         }
-        string[] array = ipStr.Split(new char[1] { '.' });
+        var array = ipStr.Split(new char[1] { '.' });
         if (array.Length != 4)
         {
             return null;
         }
-        string[] array2 = array;
-        foreach (string str in array2)
+        var array2 = array;
+        foreach (var str in array2)
         {
             if ((str.ToInt() > 255) | (str.ToInt() < 0))
             {
                 return null;
             }
         }
-        byte[] array3 = new byte[4];
+        var array3 = new byte[4];
         checked
         {
             array3[3] = (byte)uint.Parse(array[3]);

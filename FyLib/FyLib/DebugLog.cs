@@ -58,8 +58,8 @@ public class DebugLog
         {
             return;
         }
-        string text = "";
-        StringBuilder stringBuilder = new StringBuilder();
+        var text = "";
+        var stringBuilder = new StringBuilder();
         if (m_bShowTime)
         {
             stringBuilder.Append(DateTime.Now.ToString());
@@ -96,7 +96,7 @@ public class DebugLog
         text = stringBuilder.ToString();
         lock (m_pLock)
         {
-            int windowTextLengthA = user32.GetWindowTextLengthA(m_iHandle);
+            var windowTextLengthA = user32.GetWindowTextLengthA(m_iHandle);
             if (windowTextLengthA >= checked(65535 - windowTextLengthA))
             {
                 user32.SetWindowTextA(m_iHandle, "");
@@ -121,7 +121,7 @@ public class DebugLog
     /// <param name="filename">文件名 默认后缀.txt</param>
     public void SaveLog(string log, string filename)
     {
-        string text = Thread.GetDomain().BaseDirectory + "\\save";
+        var text = Thread.GetDomain().BaseDirectory + "\\save";
         lock (m_pLock)
         {
             if (!Directory.Exists(text))

@@ -18,8 +18,8 @@ public static class DatetimeHelper
     /// <returns></returns>
     public static DateTime UnixTimeStampToDateTime(this long unixTimeStamp)
     {
-        DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(unixTimeStamp);
-        DateTime dateTime = dateTimeOffset.LocalDateTime;
+        var dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(unixTimeStamp);
+        var dateTime = dateTimeOffset.LocalDateTime;
         return dateTime;
     }
     /// <summary>
@@ -29,8 +29,8 @@ public static class DatetimeHelper
     /// <returns></returns>
     public static DateTime UnixTimeStampToDateTime(this int unixTimeStamp)
     {
-        DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(unixTimeStamp);
-        DateTime dateTime = dateTimeOffset.LocalDateTime;
+        var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(unixTimeStamp);
+        var dateTime = dateTimeOffset.LocalDateTime;
         return dateTime;
     }
     /// <summary>
@@ -40,7 +40,7 @@ public static class DatetimeHelper
     /// <returns></returns>
     public static long DateTimeToUnixTimeStampX(this DateTime dateTime)
     {
-        DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
+        var dateTimeOffset = new DateTimeOffset(dateTime);
         return dateTimeOffset.ToUnixTimeMilliseconds();
     }
     /// <summary>
@@ -50,7 +50,7 @@ public static class DatetimeHelper
     /// <returns></returns>
     public static int DateTimeToUnixTimeStamp(this DateTime dateTime)
     {
-        DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
+        var dateTimeOffset = new DateTimeOffset(dateTime);
         return (int)dateTimeOffset.ToUnixTimeSeconds();
     }
 
