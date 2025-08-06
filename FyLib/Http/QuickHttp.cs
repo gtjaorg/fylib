@@ -1,6 +1,5 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FyLib.FyLib;
 
@@ -23,6 +23,7 @@ namespace FyLib.Http
         private readonly Uri _url;
         private string _path;
         private int _timeOut = 10000;
+        private JsonSerializerSettings _jsonSerializerSettings = new JsonSerializerSettings();
         private string _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0";
         private string _accept = "application/json";
         private readonly Map<string, string> _headers = new Map<string, string>();
@@ -159,6 +160,17 @@ namespace FyLib.Http
             _allowAutoRedirect = value;
             return this;
         }
+
+        /// <summary>
+        /// 设置Json序列化设置
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public QuickHttp SetJsonSerializerSettings(JsonSerializerSettings settings)
+        {
+            _jsonSerializerSettings = settings;
+            return this;
+        }
         /// <summary>
         /// 设置引用页面
         /// </summary>
@@ -179,7 +191,12 @@ namespace FyLib.Http
         /// Get
         /// </summary>
         /// <returns>HttpResponseMessage</returns>
-        public Task<HttpResponseMessage> GetAsync()
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>HttpResponseMessage</returns>
+        public Task<HttpResponseMessage> GetAsync(CancellationToken cancellationToken = default)
         {
             PackClient();
             var msg = new HttpRequestMessage(HttpMethod.Get, _path);
@@ -191,7 +208,7 @@ namespace FyLib.Http
             {
                 msg.Headers.Add(item.Key, item.Value);
             }
-            var result = Client.SendAsync(msg);
+            var result = Client.SendAsync(msg, cancellationToken);
             if (!_useWebProxy)
                 Project.HttpPool.Push(_url.ToString(), Client);
             return result;
@@ -200,12 +217,17 @@ namespace FyLib.Http
         /// Get
         /// </summary>
         /// <returns>string</returns>
-        public async Task<string?> GetAsStringAsync()
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>string</returns>
+        public async Task<string?> GetAsStringAsync(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage? result;
             try
             {
-                result = await GetAsync();
+                result = await GetAsync(cancellationToken);
             }
             catch (HttpRequestException ex)
             {
@@ -219,6 +241,11 @@ namespace FyLib.Http
                 }
                 return null;
             }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("Request was canceled");
+                return null;
+            }
 
             this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
@@ -229,27 +256,35 @@ namespace FyLib.Http
             {
                 if (result.Content.Headers.ContentType.CharSet == "GB2312")
                 {
-                    var bytes = await result.Content.ReadAsByteArrayAsync();
+                    var bytes = await result.Content.ReadAsByteArrayAsync(cancellationToken);
                     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                     return Encoding.GetEncoding("GB2312").GetString(bytes);
                 }
             }
-            return await result.Content.ReadAsStringAsync();
+            return await result.Content.ReadAsStringAsync(cancellationToken);
         }
         /// <summary>
         /// Get
         /// </summary>
         /// <returns>byte[]</returns>
-        public async Task<byte[]?> GetAsBytesAsync()
+        public async Task<byte[]?> GetAsBytesAsync(CancellationToken cancellationToken = default)
         {
-            var result = await GetAsync();
-            this.ResponseMessage = result;
-            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            try
             {
+                var result = await GetAsync(cancellationToken);
+                this.ResponseMessage = result;
+                if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    return null;
+                }
+                var t = await result.Content.ReadAsByteArrayAsync(cancellationToken);
+                return t;
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("Request was canceled");
                 return null;
             }
-            var t = await result.Content.ReadAsByteArrayAsync();
-            return t;
         }
         /// <summary>
         /// Get
@@ -266,15 +301,15 @@ namespace FyLib.Http
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>T</returns>
-        public async Task<T?> GetAsObjectAsync<T>()
+        public async Task<T?> GetAsObjectAsync<T>(CancellationToken cancellationToken = default)
         {
-            var str = await GetAsStringAsync();
+            var str = await GetAsStringAsync(cancellationToken);
             if (str == null || str.IsNullOrEmpty()) return default(T);
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str);
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str, _jsonSerializerSettings);
         }
         #endregion
         #region Post
-        private Task<HttpResponseMessage> PostAsync(HttpContent? content = null)
+        private Task<HttpResponseMessage> PostAsync(HttpContent? content = null, CancellationToken cancellationToken = default)
         {
             PackClient();
             var msg = new HttpRequestMessage(HttpMethod.Post, _path);
@@ -287,7 +322,7 @@ namespace FyLib.Http
             {
                 msg.Headers.Add(item.Key, item.Value);
             }
-            var result = Client.SendAsync(msg);
+            var result = Client.SendAsync(msg, cancellationToken);
             if (_useWebProxy == false)
                 Project.HttpPool.Push(_url.ToString(), Client);
             result.ConfigureAwait(false);
@@ -299,7 +334,14 @@ namespace FyLib.Http
         /// <param name="body"></param>
         /// <param name="encoding"></param>
         /// <returns>HttpResponseMessage</returns>
-        public async Task<HttpResponseMessage> PostAsync(string body, Encoding? encoding = null)
+        /// <summary>
+        /// Post String
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>HttpResponseMessage</returns>
+        public async Task<HttpResponseMessage?> PostAsync(string body, Encoding? encoding = null, CancellationToken cancellationToken = default)
         {
             if (encoding == null) encoding = Encoding.UTF8;
             StringContent content;
@@ -315,7 +357,7 @@ namespace FyLib.Http
             }
             try
             {
-                var result = await PostAsync(content);
+                var result = await PostAsync(content, cancellationToken);
                 this.ResponseMessage = result;
                 return result;
             }
@@ -331,8 +373,11 @@ namespace FyLib.Http
                 }
                 return null;
             }
-
-
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("Request was canceled");
+                return null;
+            }
         }
         /// <summary>
         /// Post Object
@@ -435,9 +480,9 @@ namespace FyLib.Http
         /// <param name="body"></param>
         /// <param name="encoding"></param>
         /// <returns>string</returns>
-        public async Task<string?> PostAsStringAsync(string body, Encoding? encoding = null)
+        public async Task<string?> PostAsStringAsync(string body, Encoding? encoding = null, CancellationToken cancellationToken = default)
         {
-            var result = await PostAsync(body, encoding);
+            var result = await PostAsync(body, encoding, cancellationToken);
             if (result == null) return null;
             this.ResponseMessage = result;
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
@@ -448,12 +493,12 @@ namespace FyLib.Http
             {
                 if (result.Content.Headers.ContentType.CharSet == "GB2312")
                 {
-                    var bytes = await result.Content.ReadAsByteArrayAsync();
+                    var bytes = await result.Content.ReadAsByteArrayAsync(cancellationToken);
                     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                     return Encoding.GetEncoding("GB2312").GetString(bytes);
                 }
             }
-            return await result.Content.ReadAsStringAsync();
+            return await result.Content.ReadAsStringAsync(cancellationToken);
         }
         /// <summary>
         /// Post String
@@ -661,11 +706,19 @@ namespace FyLib.Http
         /// <param name="body"></param>
         /// <param name="encoding"></param>
         /// <returns>T</returns>
-        public async Task<T?> PostAsObjectAsync<T>(string body, Encoding? encoding = null)
+        /// <summary>
+        /// Post String
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="body"></param>
+        /// <param name="encoding"></param>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>T</returns>
+        public async Task<T?> PostAsObjectAsync<T>(string body, Encoding? encoding = null, CancellationToken cancellationToken = default)
         {
-            var str = await PostAsStringAsync(body, encoding);
+            var str = await PostAsStringAsync(body, encoding, cancellationToken);
             if (str == null || str.IsNullOrEmpty()) return default;
-            return JsonConvert.DeserializeObject<T>(str);
+            return JsonConvert.DeserializeObject<T>(str, _jsonSerializerSettings);
         }
         /// <summary>
         /// Post JToken
@@ -712,6 +765,8 @@ namespace FyLib.Http
         public readonly CookieContainer CookieContainer = new CookieContainer();
         private void PackClient()
         {
+            _path = _url.LocalPath; // 重置_path为原始路径
+            
             HttpClient? t = null;
             if (_useWebProxy == false)
             {
@@ -751,14 +806,20 @@ namespace FyLib.Http
             {
                 Client = t;
             }
+            
+            // 在这里添加查询参数
             var query = string.Join("&", _params.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
-            if (query.StartsWith("?"))
+            if (!string.IsNullOrEmpty(query))
             {
-                _path += query;
-            }
-            else
-            {
-                _path += "?" + query;
+                if (query.StartsWith("?"))
+                {
+                    _path += query;
+                }
+                else
+                {
+                    _path += "?" + query;
+                }
+               
             }
         }
 
