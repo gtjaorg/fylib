@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,154 +10,174 @@ namespace FyLib.Http
     /// <summary>
     /// HttpClient池
     /// </summary>
-    public class HttpClientPool
+    public class HttpClientPool : IDisposable
     {
-#if NET9_0
-private Lock Lock = new ();
-#else
-        private object Lock = new object();
-#endif
-        private List<HttpClientInfo> infos = new List<HttpClientInfo>();
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<PooledHttpClientInfo>> _clientPool 
+            = new ConcurrentDictionary<string, ConcurrentQueue<PooledHttpClientInfo>>();
+        
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly Task _cleanupTask;
+        
         /// <summary>
         /// 队列长度
         /// </summary>
-        public int Length { get { return infos.Count; } }
+        public int Length 
+        { 
+            get 
+            { 
+                return _clientPool.Values.Sum(q => q.Count); 
+            } 
+        }
+        
         /// <summary>
         /// HttpClientPool
         /// </summary>
         public HttpClientPool()
         {
-            Task.Run(async () =>
+            _cleanupTask = Task.Run(async () =>
             {
-                await CheckTimeOut();
-            });
+                await CheckTimeOutAsync();
+            }, _cancellationTokenSource.Token);
         }
-        private async Task CheckTimeOut()
+        
+        private async Task CheckTimeOutAsync()
         {
-            while (true)
+            while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
-                await Task.Delay(50);
-                var ls = infos.Where(a => a.Time < Other.TimeStamp() - 180).ToList();
-#if NET9_0
-                this.Lock.Enter();
-                foreach (var item in ls)
+                try
                 {
-                    infos.Remove(item);
-                    item.Client.Dispose();
-                }
-                this.Lock.Exit();
-#else
-                lock (Lock)
-                {
-                    foreach (var item in ls)
+                    await Task.Delay(5000, _cancellationTokenSource.Token); // 每5秒检查一次
+                    
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    foreach (var kvp in _clientPool)
                     {
-                        infos.Remove(item);
-                        item.Client.Dispose();
+                        var queue = kvp.Value;
+                        var clientsToKeep = new ConcurrentQueue<PooledHttpClientInfo>();
+                        
+                        while (queue.TryDequeue(out var clientInfo))
+                        {
+                            // 如果客户端超过180秒未使用，则释放它
+                            if (now - clientInfo.LastUsedTime > 180)
+                            {
+                                clientInfo.Client?.Dispose();
+                            }
+                            else
+                            {
+                                clientsToKeep.Enqueue(clientInfo);
+                            }
+                        }
+                        
+                        // 将有效的客户端放回队列
+                        while (clientsToKeep.TryDequeue(out var clientInfo))
+                        {
+                            queue.Enqueue(clientInfo);
+                        }
                     }
                 }
-#endif
+                catch (OperationCanceledException)
+                {
+                    // 取消请求时正常退出
+                    break;
+                }
+                catch
+                {
+                    // 忽略其他异常，确保循环继续运行
+                }
             }
         }
+        
         /// <summary>
-        /// 析构函数
+        /// 添加HttpClient到池中
         /// </summary>
-        ~HttpClientPool()
+        /// <param name="baseUrl"></param>
+        /// <param name="client"></param>
+        public void Push(string baseUrl, HttpClient client)
         {
-            this.Dispose();
+            if (string.IsNullOrEmpty(baseUrl))
+                throw new ArgumentException("BaseUrl cannot be null or empty", nameof(baseUrl));
+            
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+            
+            var clientInfo = new PooledHttpClientInfo
+            {
+                Client = client,
+                LastUsedTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            };
+            
+            var queue = _clientPool.GetOrAdd(baseUrl, _ => new ConcurrentQueue<PooledHttpClientInfo>());
+            queue.Enqueue(clientInfo);
         }
+        
         /// <summary>
-        /// 释放数据
+        /// 从池中获取HttpClient
+        /// </summary>
+        /// <param name="baseUrl"></param>
+        /// <returns></returns>
+        public HttpClient Pop(string baseUrl)
+        {
+            if (string.IsNullOrEmpty(baseUrl))
+                return null;
+                
+            if (_clientPool.TryGetValue(baseUrl, out var queue))
+            {
+                if (queue.TryDequeue(out var clientInfo))
+                {
+                    clientInfo.LastUsedTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    return clientInfo.Client;
+                }
+            }
+            
+            return null;
+        }
+        
+        /// <summary>
+        /// 释放资源
         /// </summary>
         public void Dispose()
         {
-#if NET9_0
-            this.Lock.Enter();
-            foreach (var item in infos)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        
+        /// <summary>
+        /// 释放资源
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing) return;
+            
+            // 停止清理任务
+            _cancellationTokenSource.Cancel();
+            
+            try
             {
-                infos.Remove(item);
-                item.Client.Dispose();
+                // 等待清理任务完成（最多等待1秒）
+                _cleanupTask?.Wait(1000);
             }
-            this.Lock.Exit();
-#else
-            lock (Lock)
+            catch
             {
-                foreach (var item in infos)
+                // 忽略等待过程中的异常
+            }
+            
+            // 释放所有HttpClient实例
+            foreach (var queue in _clientPool.Values)
+            {
+                while (queue.TryDequeue(out var clientInfo))
                 {
-                    infos.Remove(item);
-                    item.Client.Dispose();
+                    clientInfo.Client?.Dispose();
                 }
             }
-#endif
-
-        }
-        /// <summary>
-        /// 添加
-        /// </summary>
-        /// <param name="BaseUrl"></param>
-        /// <param name="client"></param>
-        public void Push(string BaseUrl, HttpClient client)
-        {
-#if NET9_0
-            Lock.Enter();
-            infos.Add(new HttpClientInfo()
-            {
-                Name = BaseUrl,
-                Client = client,
-                Time = Other.TimeStamp(),
-                Status = 0
-            });
-            this.Lock.Exit();
-#else
-            lock (Lock)
-            {
-                infos.Add(new HttpClientInfo()
-                {
-                    Name = BaseUrl,
-                    Client = client,
-                    Time = Other.TimeStamp(),
-                    Status = 0
-                });
-            }
-#endif
-
-
-        }
-        /// <summary>
-        /// 弹出
-        /// </summary>
-        /// <param name="BaseUrl"></param>
-        /// <returns></returns>
-        public HttpClient? Pop(string BaseUrl)
-        {
-#if NET9_0
-            this.Lock.Enter();
-            var client = infos.Where(info => info.Name == BaseUrl && info.Status == 0).FirstOrDefault();
-            if (client != null)
-            {
-                infos.Remove(client);
-                this.Lock.Exit();
-                return client.Client;
-            }
-            this.Lock.Exit();
-#else
-            lock (Lock)
-            {
-                var client = infos.Where(info => info.Name == BaseUrl && info.Status == 0).FirstOrDefault();
-                if (client != null)
-                {
-                    infos.Remove(client);
-                    return client.Client;
-                }
-            }
-#endif
-            return null;
+            
+            _clientPool.Clear();
+            _cancellationTokenSource.Dispose();
         }
     }
-    internal class HttpClientInfo
+    
+    internal class PooledHttpClientInfo
     {
-        public string Name { get; set; }
         public HttpClient Client { get; set; }
-        public int Time { get; set; }
-        public int Status { get; set; }
+        public long LastUsedTime { get; set; }
     }
 }
