@@ -1,7 +1,4 @@
-﻿
-
-// FyLib.NicControl.NicControl
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
 

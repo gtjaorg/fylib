@@ -12,8 +12,6 @@ using System.Text;
 using System.Threading.Tasks;
 using FyLib.FyLib;
 
-using static Winhttp;
-
 namespace FyLib.Http
 {
     /// <summary>

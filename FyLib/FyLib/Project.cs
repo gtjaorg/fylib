@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
+using FyLib;
 using FyLib.Http;
 
 using Newtonsoft.Json;
@@ -14,6 +15,10 @@ using Newtonsoft.Json;
 /// </summary>
 public static class Project
 {
+    /// <summary>
+    /// 十位时间戳
+    /// </summary>
+    public static int TimeStamp => TimeHelper.TimeStamp();
     /// <summary>
     /// 运行目录
     /// </summary>
