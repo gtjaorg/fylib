@@ -766,30 +766,15 @@ namespace FyLib.Http
         private void PackClient()
         {
             _path = _url.LocalPath; // 重置_path为原始路径
-            
             HttpClient? pooledClient = null;
             if (_useWebProxy == false)
             {
                 pooledClient = Project.HttpPool.Pop(_url.ToString());
             }
-            
-            // 检查是否需要重新创建Handler（当配置变更时）
-            bool needNewHandler = false;
-            if (pooledClient != null)
+
+            if (pooledClient == null)
             {
-                // 检查各种配置是否与当前请求匹配
-                if (pooledClient.BaseAddress != _url)
-                    needNewHandler = true;
-                    
-                // 对于从池中获取的客户端，我们无法直接检查Handler配置
-                // 所以当有任何特殊配置时，我们选择创建新的HttpClient
-                if (_useWebProxy || _sslProtocols != null || _useHttp2 || !_allowAutoRedirect)
-                    needNewHandler = true;
-            }
-            
-            if (pooledClient == null || needNewHandler)
-            {
-                // 创建新的HttpClient和Handler
+                // 创建新的HttpClient
                 var handler = new SocketsHttpHandler();
                 handler.AllowAutoRedirect = _allowAutoRedirect;
                 if (_useHttp2)
@@ -806,16 +791,10 @@ namespace FyLib.Http
                     handler.Proxy = _webProxy;
                     handler.UseProxy = _useWebProxy;
                 }
-               
+
                 handler.AutomaticDecompression = DecompressionMethods.All;
                 handler.CookieContainer = CookieContainer;
-                
-                // 如果是从池中获取但需要新配置的客户端，需要释放它
-                if (pooledClient != null && needNewHandler)
-                {
-                    pooledClient.Dispose();
-                }
-                
+
                 if (Client != null) Client.Dispose();
                 Client = new HttpClient(handler);
             }
@@ -824,7 +803,6 @@ namespace FyLib.Http
                 // 使用池中的HttpClient
                 Client = pooledClient;
             }
-            
             // 重新配置客户端（适用于新创建的和从池中获取的）
             Client.BaseAddress = _url;
             Client.Timeout = Other.GetTimeSpan(_timeOut);
@@ -834,7 +812,6 @@ namespace FyLib.Http
             Client.DefaultRequestHeaders.UserAgent.TryParseAdd(_userAgent);
             Client.DefaultRequestHeaders.AcceptCharset.TryParseAdd("UTF-8");
             Client.DefaultRequestHeaders.Accept.TryParseAdd(_accept);
-            
             // 在这里添加查询参数
             var query = string.Join("&", _params.ToList().Select(a => $"{a.Key}={Uri.EscapeDataString(a.Value)}"));
             if (!string.IsNullOrEmpty(query))
@@ -847,6 +824,7 @@ namespace FyLib.Http
                 {
                     _path += "?" + query;
                 }
+
             }
         }
 
