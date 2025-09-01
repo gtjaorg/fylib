@@ -171,7 +171,6 @@ public static class Other
     /// <returns></returns>
     public static string RandString(int len = 16, int type = 0)
     {
-        var random = new Random(default(Guid).GetHashCode());
         var separator = ",".ToCharArray();
         var text = "";
         text = type switch
@@ -184,12 +183,19 @@ public static class Other
         };
         var array = text.Split(separator, text.Length);
         var text2 = string.Empty;
-        for (var i = 0; i < len; i = checked(i + 1))
+        using (var rng = RandomNumberGenerator.Create())
         {
-            text2 += array[random.Next(array.Length)];
+            var randomBytes = new byte[4];
+            for (var i = 0; i < len; i++)
+            {
+                rng.GetBytes(randomBytes);
+                var randomValue = BitConverter.ToUInt32(randomBytes, 0);
+                text2 += array[randomValue % array.Length];
+            }
         }
         return text2;
     }
+
 
     /// <summary>
     /// 随机数字
