@@ -38,20 +38,12 @@ namespace FyLib
             return (startTimestamp, endTimestamp);
         }
         /// <summary>
-        /// 取当前时区时间戳 十位
-        /// </summary>
-        /// <returns></returns>
-        public static int LocalTimeStamp()
-        {
-            return checked((int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
-        }
-        /// <summary>
         /// 获取时间戳UTC
         /// </summary>
         /// <returns></returns>
         public static int TimeStamp()
         {
-            return checked((int)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
+            return checked((int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds()));
         }
         /// <summary>
         /// 获取时间戳毫秒UTC
@@ -59,91 +51,30 @@ namespace FyLib
         /// <returns></returns>
         public static long TimeStampX()
         {
-            return checked((long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMicroseconds);
-        }
-        /// <summary>
-        /// 取当前时区时间戳 十三位
-        /// </summary>
-        /// <returns></returns>
-        public static long LocalTimeStampX()
-        {
-            return checked((long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
+            return checked((long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
         }
 
+
         /// <summary>
-        /// 取指定时间的时间戳
+        /// 获取当前UTC时间的时间戳
         /// </summary>
-        /// <param name="time"></param>
         /// <returns></returns>
         public static int TimeStamp(this DateTime time)
         {
             return checked((int)(time.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
         }
+
         /// <summary>
-        /// 取指定时间的本地时间戳
+        /// 获取当前UTC时间的毫秒级时间戳
         /// </summary>
-        /// <param name="time"></param>
         /// <returns></returns>
-        public static int LocalTimeStamp(this DateTime time)
+        public static long TimeStampX(this DateTime time)
         {
-            return checked((int)(time- new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
+            return checked((long)(time.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
         }
-        /// <summary>
-        /// UTC时间戳转换本地时间戳
-        /// </summary>
-        /// <param name="utcTimestamp"></param>
-        /// <returns></returns>
-        public static long UtcTimestampToLocalTimestamp(long utcTimestamp)
-        {
-            // 将 UTC 时间戳转换为 DateTime
-            var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
-            // 将 UTC 时间转换为本地时间
-            var localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
-            // 将本地时间转换为本地时间戳（以秒为单位）
-            long localTimestamp = localDateTime.LocalTimeStamp();
-            return localTimestamp;
-        }
-        /// <summary>
-        /// UTC时间戳转换本地时间戳
-        /// </summary>
-        /// <param name="utcTimestamp"></param>
-        /// <returns></returns>
-        public static int UtcTimestampToLocalTimestamp(int utcTimestamp)
-        {
-            // 将 UTC 时间戳转换为 DateTime
-            var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
-            // 将 UTC 时间转换为本地时间
-            var localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
-            // 将本地时间转换为本地时间戳（以秒为单位）
-            var localTimestamp = localDateTime.LocalTimeStamp();
-            return localTimestamp;
-        }
-        /// <summary>
-        /// 本地时间戳转换Utc时间戳
-        /// </summary>
-        /// <param name="localTimestamp"></param>
-        /// <returns></returns>
-        public static int LocalTimestampToUtcTimestamp(int localTimestamp)
-        {
-            // 将时间戳转换为 DateTime
-            var dateTime = DateTimeOffset.FromUnixTimeSeconds(localTimestamp).DateTime;
-            // 将UTC时间转换为UTC时间戳（以秒为单位）
-            var utcTimestamp = dateTime.TimeStamp();
-            return utcTimestamp;
-        }
-        /// <summary>
-        /// 本地时间戳转换Utc时间戳
-        /// </summary>
-        /// <param name="localTimestamp"></param>
-        /// <returns></returns>
-        public static long LocalTimestampToUtcTimestamp(long localTimestamp)
-        {
-            // 将时间戳转换为 DateTime
-            var dateTime = DateTimeOffset.FromUnixTimeSeconds(localTimestamp).DateTime;
-            // 将UTC时间转换为UTC时间戳（以秒为单位）
-            long utcTimestamp = dateTime.TimeStamp();
-            return utcTimestamp;
-        }
+
+
+
         /// <summary>
         /// 获取基于当前时间的特定时间时间戳
         /// </summary>
@@ -151,7 +82,7 @@ namespace FyLib
         /// <param name="time">文本日期， 比如"07:00"</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static long GetUtcTimestampAtSpecificTime(int daysFromToday, string time)
+        public static long GetTimestampAtSpecificTime(int daysFromToday, string time)
         {
             // 尝试从提供的时间字符串中解析时间
             if (!TimeSpan.TryParse(time, out var parsedTime))
@@ -173,13 +104,14 @@ namespace FyLib
             // 返回时间戳（秒）
             return (long)elapsedTime.TotalSeconds;
         }
+
         /// <summary>
-        /// 判断时间戳是否大于指定的时间，如 10:00
+        /// 比较时间戳对应的本地时间是否大于指定时间
         /// </summary>
-        /// <param name="timestamp"></param>
-        /// <param name="compareTime"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
+        /// <param name="timestamp">要比较的时间戳（毫秒）</param>
+        /// <param name="compareTime">用于比较的时间字符串，格式为 HH:mm</param>
+        /// <returns>如果时间戳对应的本地时间大于指定时间则返回 true，否则返回 false</returns>
+        /// <exception cref="ArgumentException">当 compareTime 参数格式不正确时抛出异常</exception>
         public static bool IsTimestampGreaterThanTime(long timestamp, string compareTime)
         {
             // 将时间戳转换为 DateTime 对象（UTC时间）
@@ -198,13 +130,14 @@ namespace FyLib
             // 只比较小时和分钟
             return hour > compareHour || (hour == compareHour && minute > compareMinute);
         }
+
         /// <summary>
-        /// 判断时间戳是否小于指定时间如 10:00
+        /// 比较时间戳对应的时间是否小于指定时间
         /// </summary>
-        /// <param name="timestamp"></param>
-        /// <param name="compareTime"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
+        /// <param name="timestamp">要比较的时间戳（毫秒）</param>
+        /// <param name="compareTime">用于比较的時間字符串，格式为 HH:mm</param>
+        /// <returns>如果时间戳对应的时间小于指定时间则返回true，否则返回false</returns>
+        /// <exception cref="ArgumentException">当compareTime格式不正确时抛出异常</exception>
         public static bool IsTimestampLessThanTime(long timestamp, string compareTime)
         {
             // 将时间戳转换为 DateTime 对象（UTC时间）
@@ -224,13 +157,14 @@ namespace FyLib
             // 只比较小时和分钟
             return hour < compareHour || (hour == compareHour && minute < compareMinute);
         }
+
         /// <summary>
-        /// 判断时间是否在范围内
+        /// 判断时间戳是否在指定的时间范围内
         /// </summary>
-        /// <param name="timestamp"></param>
-        /// <param name="startTime"></param>
-        /// <param name="endTime"></param>
-        /// <returns></returns>
+        /// <param name="timestamp">要检查的时间戳（毫秒）</param>
+        /// <param name="startTime">开始时间，格式为 "HH:mm"</param>
+        /// <param name="endTime">结束时间，格式为 "HH:mm"</param>
+        /// <returns>如果时间戳在指定范围内返回 true，否则返回 false</returns>
         public static bool IsTimestampWithinTimeRange(long timestamp, string startTime, string endTime)
         {
             // 将时间戳转换为 DateTime 对象（UTC时间）
@@ -271,11 +205,11 @@ namespace FyLib
         }
 
         /// <summary>
-        /// 检查给定的时间是否在时间段内
+        /// 检查当前时间是否在指定的时间范围内
         /// </summary>
-        /// <param name="now">要检查的时间</param>
-        /// <param name="timeRange">时间段字符串，格式为 "HH:mm-HH:mm"</param>
-        /// <returns>如果时间在范围内，则为 true，否则为 false。</returns>
+        /// <param name="timeRange">时间范围字符串，格式为"HH:mm-HH:mm"</param>
+        /// <param name="now">可选的当前时间，默认为当前系统时间</param>
+        /// <returns>如果当前时间在指定范围内则返回true，否则返回false</returns>
         public static bool IsTimeInRange(string timeRange, DateTime? now = null)
         {
             var time = now ?? DateTime.Now;

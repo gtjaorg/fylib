@@ -1,26 +1,21 @@
-﻿
+﻿// Other
 
-// Other
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
-
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
-using static HashHelper;
 /// <summary>
 /// 其他辅助扩展类
 /// </summary>
 public static class Other
 {
-    private static int m_iStartTime = TimeStamp();
-
+    private static readonly int MiStartTime = TimeStamp();
 
 
     /// <summary>
@@ -54,6 +49,7 @@ public static class Other
     {
         return checked((int)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
     }
+
     /// <summary>
     /// 获取当前时区时间戳
     /// </summary>
@@ -62,14 +58,16 @@ public static class Other
     {
         return checked((int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
     }
+
     /// <summary>
     /// 获取当前时区时间戳毫秒
     /// </summary>
     /// <returns></returns>
     public static int LocalTimeStampX()
     {
-        return checked((int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMicroseconds);
+        return checked((int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
     }
+
     /// <summary>
     /// 取时间戳 十三位
     /// </summary>
@@ -93,6 +91,7 @@ public static class Other
         {
             throw new ArgumentException("Invalid time format. Please use HH:mm format.");
         }
+
         // 获取当前日期
         var today = DateTime.Today;
         // 设置新的日期和时间，增加天数和解析得到的小时及分钟
@@ -108,6 +107,7 @@ public static class Other
         // 返回时间戳（秒）
         return (long)elapsedTime.TotalSeconds;
     }
+
     /// <summary>
     /// 时间戳到文本
     /// </summary>
@@ -122,6 +122,7 @@ public static class Other
             // 如果是毫秒级，将时间戳除以1000得到以秒为单位的时间戳
             timestamp = timestamp / 1000;
         }
+
         // 转换时间戳为DateTime
         var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         dateTime = dateTime.AddSeconds(timestamp).ToLocalTime();
@@ -143,6 +144,7 @@ public static class Other
             // 如果是13位，将时间戳除以1000得到以秒为单位的时间戳
             timestamp = timestamp / 1000;
         }
+
         // 转换时间戳为DateTime
         var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         dateTime = dateTime.AddSeconds(timestamp).ToLocalTime();
@@ -157,9 +159,9 @@ public static class Other
     /// <returns></returns>
     public static byte[] RandBytes(int len = 16)
     {
-        var random = new Random(default(Guid).GetHashCode());
+        var random = RandomNumberGenerator.Create();
         var array = new byte[len];
-        random.NextBytes(array);
+        random.GetBytes(array);
         return array;
     }
 
@@ -172,27 +174,28 @@ public static class Other
     public static string RandString(int len = 16, int type = 0)
     {
         var separator = ",".ToCharArray();
-        var text = "";
-        text = type switch
+
+        var text = type switch
         {
-            0 => "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z",
+            0 =>
+                "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z",
             1 => "0,1,2,3,4,5,6,7,8,9",
             2 => "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z",
             3 => "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z",
-            _ => "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z",
+            _ =>
+                "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z",
         };
         var array = text.Split(separator, text.Length);
         var text2 = string.Empty;
-        using (var rng = RandomNumberGenerator.Create())
+        using var rng = RandomNumberGenerator.Create();
+        var randomBytes = new byte[4];
+        for (var i = 0; i < len; i++)
         {
-            var randomBytes = new byte[4];
-            for (var i = 0; i < len; i++)
-            {
-                rng.GetBytes(randomBytes);
-                var randomValue = BitConverter.ToUInt32(randomBytes, 0);
-                text2 += array[randomValue % array.Length];
-            }
+            rng.GetBytes(randomBytes);
+            var randomValue = BitConverter.ToUInt32(randomBytes, 0);
+            text2 += array[randomValue % array.Length];
         }
+
         return text2;
     }
 
@@ -202,42 +205,30 @@ public static class Other
     /// </summary>
     /// <param name="minValue">最小值</param>
     /// <param name="maxValue">最大值</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <returns></returns>
     public static int RandInt(int minValue, int maxValue)
     {
-        if (minValue > maxValue)
-        {
-            throw new ArgumentOutOfRangeException("minValue must be less than maxValue");
-        }
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(minValue, maxValue);
         if (minValue == maxValue) return minValue;
 
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            var randomNumber = new byte[4]; // Create a byte array to hold the data
-            rng.GetBytes(randomNumber); // Fill the array with random bytes
-            var result = BitConverter.ToInt32(randomNumber, 0); // Convert bytes to an integer
-            return (Math.Abs(result) % (maxValue - minValue + 1)) + minValue; // Map the result to the specified range
-        }
+        using var rng = RandomNumberGenerator.Create();
+        var randomNumber = new byte[4]; // Create a byte array to hold the data
+        rng.GetBytes(randomNumber); // Fill the array with random bytes
+        var result = BitConverter.ToInt32(randomNumber, 0); // Convert bytes to an integer
+        return (Math.Abs(result) % (maxValue - minValue + 1)) + minValue; // Map the result to the specified range
     }
 
     /// <summary>
-    /// 随机数字
+    /// 生成指定范围内的随机整数
     /// </summary>
-    /// <param name="max">最大值</param>
-    /// <returns></returns>
-    public static int RandInt(int max)
+    /// <param name="max">随机整数的最大值, 默认100</param>
+    /// <returns>返回一个大于等于1且小于等于max的随机整数</returns>
+    public static int RandInt(int max = 100)
     {
         return RandInt(1, max);
     }
 
-    /// <summary>
-    /// 随机数字
-    /// </summary>
-    /// <returns></returns>
-    public static int RandInt()
-    {
-        return RandInt(1, int.MaxValue);
-    }
 
     /// <summary>
     /// 格式化文件大小
@@ -246,23 +237,15 @@ public static class Other
     /// <returns></returns>
     public static string FormatFileSize(long fileSize)
     {
-        if (fileSize < 0)
+        ArgumentOutOfRangeException.ThrowIfNegative(fileSize);
+
+        return fileSize switch
         {
-            throw new ArgumentOutOfRangeException("fileSize");
-        }
-        if (fileSize >= 1073741824)
-        {
-            return $"{(double)fileSize / 1073741824.0:########0.00} GB";
-        }
-        if (fileSize >= 1048576)
-        {
-            return $"{(double)fileSize / 1048576.0:####0.00} MB";
-        }
-        if (fileSize >= 1024)
-        {
-            return $"{(double)fileSize / 1024.0:####0.00} KB";
-        }
-        return $"{fileSize} bytes";
+            >= 1073741824 => $"{fileSize / 1073741824.0:########0.00} GB",
+            >= 1048576 => $"{fileSize / 1048576.0:####0.00} MB",
+            >= 1024 => $"{fileSize / 1024.0:####0.00} KB",
+            _ => $"{fileSize} bytes"
+        };
     }
 
     /// <summary>
@@ -271,7 +254,7 @@ public static class Other
     /// <returns></returns>
     public static string GetRunTime()
     {
-        return FormatSeconds(checked(TimeStamp() - m_iStartTime));
+        return FormatSeconds(checked(TimeStamp() - MiStartTime));
     }
 
     /// <summary>
@@ -281,29 +264,28 @@ public static class Other
     /// <returns></returns>
     public static string FormatSeconds(int t)
     {
-        if (t >= 86400)
-        {
-            Convert.ToInt16(t / 86400);
-            Convert.ToInt16(t % 86400 / 3600);
-            Convert.ToInt16(t % 86400 % 3600 / 60);
-            Convert.ToInt16(t % 86400 % 3600 % 60);
-        }
-        else if (t >= 3600)
-        {
-            Convert.ToInt16(t / 3600);
-            Convert.ToInt16(t % 3600 / 60);
-            Convert.ToInt16(t % 3600 % 60);
-        }
-        else if (t >= 60)
-        {
-            Convert.ToInt16(t / 60);
-            Convert.ToInt16(t % 60);
-        }
-        else
-        {
-            Convert.ToInt16(t);
-        }
-        return new TimeSpan(0, 0, 0, t).ToString();
+        ArgumentOutOfRangeException.ThrowIfNegative(t);
+
+        var days = t / 86400;
+        var hours = (t % 86400) / 3600;
+        var minutes = (t % 3600) / 60;
+        var seconds = t % 60;
+
+        var parts = new List<string>();
+
+        if (days > 0)
+            parts.Add($"{days}天");
+
+        if (hours > 0)
+            parts.Add($"{hours}小时");
+
+        if (minutes > 0)
+            parts.Add($"{minutes}分钟");
+
+        if (seconds > 0 || parts.Count == 0) // 如果没有其他部分，至少显示秒数
+            parts.Add($"{seconds}秒");
+
+        return string.Join("", parts);
     }
 
 
@@ -314,15 +296,16 @@ public static class Other
     public static string GetRandMac()
     {
         var stringBuilder = new StringBuilder();
-        _ = new byte[0];
+        _ = Array.Empty<byte>();
         var array = RandBytes(6);
         foreach (var b in array)
         {
             stringBuilder.Append(Convert.ToString(b, 16).PadLeft(2, '0').ToUpper());
-            stringBuilder.Append(":");
+            stringBuilder.Append(':');
         }
+
         var text = stringBuilder.ToString();
-        return text[..checked(text.Length - 1)];
+        return text[..^1];
     }
 
     /// <summary>
@@ -337,18 +320,21 @@ public static class Other
         {
             bin = bin.Take(6).ToArray();
         }
+
         if (bin.Length < 6)
         {
             return "";
         }
+
         var array = bin;
         foreach (var b in array)
         {
             stringBuilder.Append(Convert.ToString(b, 16).PadLeft(2, '0').ToUpper());
-            stringBuilder.Append(":");
+            stringBuilder.Append(':');
         }
+
         var text = stringBuilder.ToString();
-        return text[..checked(text.Length - 1)];
+        return text[..^1];
     }
 
     /// <summary>
@@ -364,17 +350,19 @@ public static class Other
         {
             for (var i = 0; i < 7; i++)
             {
-                var num3 = (int)unchecked(num % 10) * 2;
-                num = unchecked(num / 10);
-                var num4 = (int)unchecked(num % 10);
-                num = unchecked(num / 10);
-                num2 += num4 + unchecked(num3 / 10) + unchecked(num3 % 10);
+                var num3 = (int)(num % 10) * 2;
+                num = (num / 10);
+                var num4 = (int)(num % 10);
+                num = (num / 10);
+                num2 += num4 + (num3 / 10) + (num3 % 10);
             }
-            num2 = 10 - unchecked(num2 % 10);
+
+            num2 = 10 - (num2 % 10);
             if (num2 == 10)
             {
                 num2 = 0;
             }
+
             return text + num2;
         }
     }
@@ -392,17 +380,19 @@ public static class Other
         {
             for (var i = 0; i < 7; i++)
             {
-                var num3 = (int)unchecked(num % 10) * 2;
-                num = unchecked(num / 10);
-                var num4 = (int)unchecked(num % 10);
-                num = unchecked(num / 10);
-                num2 += num4 + unchecked(num3 / 10) + unchecked(num3 % 10);
+                var num3 = (int)(num % 10) * 2;
+                num = num / 10;
+                var num4 = (int)(num % 10);
+                num = num / 10;
+                num2 += num4 + num3 / 10 + num3 % 10;
             }
-            num2 = 10 - unchecked(num2 % 10);
+
+            num2 = 10 - num2 % 10;
             if (num2 == 10)
             {
                 num2 = 0;
             }
+
             return str + num2;
         }
     }
@@ -410,14 +400,14 @@ public static class Other
     /// <summary>
     /// 检测通信
     /// </summary>
-    /// <param name="IP">IP地址或域名</param>
-    /// <param name="TimeOut">超时时间</param>
+    /// <param name="ip">IP地址或域名</param>
+    /// <param name="timeOut">超时时间</param>
     /// <returns></returns>
-    public static bool Ping(string IP, int TimeOut = 1000)
+    public static bool Ping(string ip, int timeOut = 1000)
     {
         var ping = new Ping();
         new PingOptions().DontFragment = true;
-        return ping.Send(IP, TimeOut).Status == IPStatus.Success;
+        return ping.Send(ip, timeOut).Status == IPStatus.Success;
     }
 
     /// <summary>
@@ -436,12 +426,13 @@ public static class Other
     /// </summary>
     /// <param name="domain"></param>
     /// <returns></returns>
-    public static string DomainToIP(string domain)
+    public static string DomainToIp(string domain)
     {
         if (domain.IsIp())
         {
             return domain;
         }
+
         try
         {
             return new IPEndPoint(Dns.GetHostEntry(domain).AddressList[0], 0).Address.ToString();
@@ -451,17 +442,17 @@ public static class Other
             return "0.0.0.0";
         }
     }
+
     /// <summary>
     /// 获取一个随机TCP端口
     /// </summary>
     /// <returns></returns>
     public static int GetRandomPort()
     {
-        var Listener = new TcpListener(IPAddress.Loopback, 0);
-        if (Listener == null) return -1;
-        Listener.Start();
-        var ListenPort = ((IPEndPoint)Listener.LocalEndpoint).Port;
-        Listener.Stop();
-        return ListenPort;
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var listenPort = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return listenPort;
     }
 }

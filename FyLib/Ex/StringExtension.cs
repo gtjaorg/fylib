@@ -78,11 +78,29 @@ namespace FyLib
                     var obj = JObject.Parse(source);
                     return obj;
                 }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            /// <summary>
+            /// 将字符串转换为指定类型的对象
+            /// </summary>
+            /// <typeparam name="T">目标类型</typeparam>
+            /// <returns>转换后的对象，如果转换失败则返回null</returns>
+            public T? ToObject<T>() where T : class
+            {
+                var obj = source.ToJson();
+                if (obj == null) return null;
+                try
+                {
+                    return obj.ToObject<T>();
+                }
                 catch 
                 {
                     return null;
                 }
-
             }
         }
     }

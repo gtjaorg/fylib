@@ -8,6 +8,12 @@ using System.Text;
 
 public static class HashHelper
 {
+    /// <summary>
+    /// 提供CRC32校验算法的实现
+    /// </summary>
+    /// <remarks>
+    /// 该类使用标准的CRC32多项式0xEDB88320进行校验值计算
+    /// </remarks>
     public class CRC32
     {
         private static uint[] crcTable;

@@ -12,21 +12,42 @@ namespace FyLibTest
             {
                 Console.WriteLine("=== FyLib 测试程序 ===");
                 
+                //随机数功能
+                for (var i = 0; i < 10; i++)
+                {
+                    Console.WriteLine(Other.RandBytes().ToHex());
+                }
+
+                for (var i = 0; i < 10; i++)
+                {
+                    Console.WriteLine(Other.RandInt(100));
+                }
+
+                for (var i = 0; i < 10; i++)
+                {
+                    Console.WriteLine(Other.RandString(16));
+                }
+
+                
+                
+                
+                
                 // 测试IP地址验证功能
-                string str = "12.3";
+                var str = "12.3";
                 Console.WriteLine($"字符串 \"{str}\" 是否为IP地址: {str.IsIp}");
                 
                 Console.WriteLine(str.md5);
                 Console.WriteLine(str.MD5);
 
                 // 测试时间戳功能
-                var utcTimestamp = TimeHelper.TimeStamp();
-                var localTimestamp = TimeHelper.LocalTimeStamp();
-                Console.WriteLine($"UTC时间戳: {utcTimestamp}");
-                Console.WriteLine($"本地时间戳: {localTimestamp}");
-                Console.WriteLine($"Debug: UTC时间戳: {utcTimestamp}");
-                Console.WriteLine($"Debug: 本地时间戳: {localTimestamp}");
-
+                Console.WriteLine($"UTC时间戳: {TimeHelper.TimeStamp()}");
+                Console.WriteLine($"UTC时间戳: {Other.TimeStamp()}");
+                Console.WriteLine($"UTC时间戳: {TimeHelper.TimeStampX()}");
+                Console.WriteLine($"UTC时间戳: {Other.TimeStampX()}");
+                
+                Console.WriteLine($"UTC时间戳: {DateTime.Now.TimeStamp()}");
+                Console.WriteLine($"UTC时间戳: {DateTime.Now.TimeStampX()}");
+                
                 // 显示系统信息
                 Console.WriteLine("\n=== 系统信息 ===");
                 Console.WriteLine($"OS Description: {RuntimeInformation.OSDescription}");
@@ -45,10 +66,20 @@ namespace FyLibTest
                 {
                     Console.WriteLine($"IP地址 \"{ip}\" 是否有效: {ip.IsIp()}");
                 }
+                
+                Console.WriteLine(Other.FormatSeconds(1360000));
+
+                #region Bytes
+
+                var bytes = Other.RandBytes(36);
+                Console.WriteLine(bytes.md5);
+                Console.WriteLine(bytes.MD5);
+                Console.WriteLine(bytes.Hex);
+                Console.WriteLine(bytes.FormatHex);
+
+                #endregion
             });
             t.Wait();
-            Console.WriteLine("\n按任意键退出...");
-            Console.Read();
         }
     }
 }
