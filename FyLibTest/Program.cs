@@ -11,11 +11,13 @@ namespace FyLibTest
             var t = Task.Run(() =>
             {
                 Console.WriteLine("=== FyLib 测试程序 ===");
-
+                
                 // 测试IP地址验证功能
                 string str = "12.3";
                 Console.WriteLine($"字符串 \"{str}\" 是否为IP地址: {str.IsIp}");
-                Debug.WriteLine($"Debug: 字符串 \"{str}\" 是否为IP地址: {str.IsIp}");
+                
+                Console.WriteLine(str.md5);
+                Console.WriteLine(str.MD5);
 
                 // 测试时间戳功能
                 var utcTimestamp = TimeHelper.TimeStamp();
