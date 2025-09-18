@@ -19,7 +19,6 @@ namespace FyLib.Http
     /// </summary>
     public class QuickHttp
     {
-
         private readonly Uri _url;
         private string _path;
         private int _timeOut = 10000;
@@ -309,6 +308,64 @@ namespace FyLib.Http
         }
         #endregion
         #region Post
+
+        /// <summary>
+        /// 上传文件（multipart/form-data）
+        /// </summary>
+        /// <param name="filePath">本地文件路径</param>
+        /// <param name="formField">表单字段名，默认"file"</param>
+        /// <param name="extraForm">附加表单字段，可为null</param>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>HttpResponseMessage</returns>
+        public async Task<HttpResponseMessage?> PostFileAsync(string filePath, string formField = "file", Dictionary<string, string>? extraForm = null, CancellationToken cancellationToken = default)
+        {
+            if (!System.IO.File.Exists(filePath))
+                throw new ArgumentException($"文件不存在: {filePath}");
+            PackClient();
+            using var content = new MultipartFormDataContent();
+            var fileName = System.IO.Path.GetFileName(filePath);
+            var fileStream = System.IO.File.OpenRead(filePath);
+            var fileContent = new StreamContent(fileStream);
+            content.Add(fileContent, formField, fileName);
+            if (extraForm != null)
+            {
+                foreach (var kv in extraForm)
+                {
+                    content.Add(new StringContent(kv.Value), kv.Key);
+                }
+            }
+            foreach (var item in _headers.ToList())
+            {
+                if (!content.Headers.Contains(item.Key))
+                    content.Headers.Add(item.Key, item.Value);
+            }
+            try
+            {
+                var msg = new HttpRequestMessage(HttpMethod.Post, _path)
+                {
+                    Content = content
+                };
+                if (_useHttp2)
+                {
+                    msg.Version = new Version(2, 0);
+                }
+                var result = await Client.SendAsync(msg, cancellationToken);
+                this.ResponseMessage = result;
+                if (!_useWebProxy)
+                    Project.HttpPool.Push(_url.ToString(), Client);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return null;
+            }
+            finally
+            {
+                fileStream.Dispose();
+            }
+        }
+
         private Task<HttpResponseMessage> PostAsync(HttpContent? content = null, CancellationToken cancellationToken = default)
         {
             PackClient();
@@ -333,17 +390,11 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="body"></param>
         /// <param name="encoding"></param>
-        /// <returns>HttpResponseMessage</returns>
-        /// <summary>
-        /// Post String
-        /// </summary>
-        /// <param name="body"></param>
-        /// <param name="encoding"></param>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns>HttpResponseMessage</returns>
         public async Task<HttpResponseMessage?> PostAsync(string body, Encoding? encoding = null, CancellationToken cancellationToken = default)
         {
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             StringContent content;
 
             try
@@ -385,9 +436,9 @@ namespace FyLib.Http
         /// <param name="body"></param>
         /// <param name="encoding"></param>
         /// <returns>HttpResponseMessage</returns>
-        public async Task<HttpResponseMessage> PostAsync(object body, Encoding? encoding = null)
+        public async Task<HttpResponseMessage?> PostAsync(object body, Encoding? encoding = null)
         {
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             var content = new StringContent(JsonConvert.SerializeObject(body), encoding, "application/json");
             try
             {
@@ -415,14 +466,14 @@ namespace FyLib.Http
         /// <param name="JToken"></param>
         /// <param name="encoding"></param>
         /// <returns>HttpResponseMessage</returns>
-        public async Task<HttpResponseMessage> PostAsync(JToken JToken, Encoding? encoding = null)
+        public async Task<HttpResponseMessage?> PostAsync(JToken JToken, Encoding? encoding = null)
         {
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             var val = new JsonSerializerSettings
             {
                 NullValueHandling = (NullValueHandling)1
             };
-            if (JToken == null) JToken = JToken.Parse("{}");
+            JToken ??= JToken.Parse("{}");
             var str = JsonConvert.SerializeObject(JToken, val);
             var content = new StringContent(str, encoding, MediaTypeHeaderValue.Parse("application/json"));
             try
@@ -450,9 +501,9 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns>HttpResponseMessage</returns>
-        public async Task<HttpResponseMessage> PostAsync(byte[] bytes)
+        public async Task<HttpResponseMessage?> PostAsync(byte[] bytes)
         {
-            if (bytes == null) bytes = new byte[0];
+            bytes ??= [];
             var content = new ByteArrayContent(bytes);
             try
             {
@@ -479,6 +530,7 @@ namespace FyLib.Http
         /// </summary>
         /// <param name="body"></param>
         /// <param name="encoding"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns>string</returns>
         public async Task<string?> PostAsStringAsync(string body, Encoding? encoding = null, CancellationToken cancellationToken = default)
         {
@@ -699,13 +751,6 @@ namespace FyLib.Http
             var t = await result.Content.ReadAsByteArrayAsync();
             return t;
         }
-        /// <summary>
-        /// Post String
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="body"></param>
-        /// <param name="encoding"></param>
-        /// <returns>T</returns>
         /// <summary>
         /// Post String
         /// </summary>
