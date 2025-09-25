@@ -30,12 +30,12 @@ namespace FyLib
             /// <summary>
             /// 是否为空或空字符串
             /// </summary>
-            public bool IsNullOrEmpty => string.IsNullOrEmpty(source);
+            public bool IsNullOrEmpty_ => string.IsNullOrEmpty(source);
 
             /// <summary>
             /// 是否为空或空白字符串
             /// </summary>
-            public bool IsNullOrWhiteSpace => string.IsNullOrWhiteSpace(source);
+            public bool IsNullOrWhiteSpace_ => string.IsNullOrWhiteSpace(source);
 
             /// <summary>
             /// 是否为IP地址
@@ -97,7 +97,7 @@ namespace FyLib
                 {
                     return obj.ToObject<T>();
                 }
-                catch 
+                catch
                 {
                     return null;
                 }

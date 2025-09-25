@@ -3,10 +3,24 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>1.2.1</Version>
+    <Version>2.1.0</Version>
     <Authors>枫影傲然</Authors>
+    <Company>枫影傲然</Company>
+    <Product>FyLib</Product>
+    <PackageId>FyLib</PackageId>
+    <Title>FyLib</Title>
+    <Description>一个包含各种常用功能的 C# 工具库，包括哈希计算、HTTP 请求、时间处理、文件操作等实用功能</Description>
+    <Copyright>Copyright © 枫影傲然 2024</Copyright>
+    <PackageTags>utility;helper;tools;hash;http;datetime;file;extension</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/gtjaorg/fylib</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/gtjaorg/fylib</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>preview</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -21,6 +35,10 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
