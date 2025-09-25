@@ -66,7 +66,9 @@ namespace FyLib.Pack
             BW.Write(array);
             MS.Position = 0L;
         }
-
+        /// <summary>
+        /// 析构函数
+        /// </summary>
         ~Unpack()
         {
             Clear();
@@ -94,7 +96,6 @@ namespace FyLib.Pack
         /// <returns></returns>
         public byte[] GetData(bool type = false)
         {
-            byte[] array = null;
             checked
             {
                 if (type)
@@ -192,7 +193,7 @@ namespace FyLib.Pack
         /// <typeparam name="T">数据类型: byte short int uint Token byte[]</typeparam>
         /// <param name="len">当类型为byte[]时 必填</param>
         /// <returns></returns>
-        public T Get<T>(int len = 0)
+        public T? Get<T>(int len = 0)
         {
             var result = default(T);
             if (typeof(T) == typeof(byte))

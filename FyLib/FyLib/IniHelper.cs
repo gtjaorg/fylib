@@ -5,6 +5,9 @@ using System.Text;
 
 namespace FyLib
 {
+    /// <summary>
+    /// 提供对 INI 文件的读写操作。
+    /// </summary>
     public static class IniHelper
     {
         /// <summary>
@@ -17,7 +20,7 @@ namespace FyLib
         /// <param name="size">返回值允许的大小</param>
         /// <param name="filepath">ini文件的完整路径</param>
         /// <returns></returns>
-        [DllImport("kernel32.dll",CharSet = CharSet.Unicode)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetPrivateProfileString(
             string section,
             string key,
@@ -50,7 +53,7 @@ namespace FyLib
         /// <param name="def">没有找到时返回的默认值</param>
         /// <param name="filename">ini文件完整路径</param>
         /// <returns></returns>
-        public static string getString(string section, string key, string def, string filename)
+        public static string GetString(string section, string key, string def, string filename)
         {
             var sb = new StringBuilder(4096);
             GetPrivateProfileString(section, key, def, sb, 4096, filename);
@@ -64,7 +67,7 @@ namespace FyLib
         /// <param name="key">键名</param>
         /// <param name="val">写入值</param>
         /// <param name="filename">ini文件完整路径</param>
-        public static void writeString(string section, string key, string val, string filename)
+        public static void WriteString(string section, string key, string val, string filename)
         {
             WritePrivateProfileString(section, key, val, filename);
         }

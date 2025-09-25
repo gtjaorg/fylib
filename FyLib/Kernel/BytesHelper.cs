@@ -28,7 +28,7 @@ public static class BytesHelper
         Buffer.BlockCopy(bin2, 0, result, bin.Length, bin2.Length);
         return result;
     }
-    
+
     /// <summary>
     /// Gzip压缩
     /// </summary>
@@ -63,7 +63,7 @@ public static class BytesHelper
     /// </summary>
     /// <param name="bin"></param>
     /// <returns></returns>
-    public static Span<byte> asSpan( this byte[] bin)
+    public static Span<byte> asSpan(this byte[] bin)
     {
         return new Span<byte>(bin);
     }
@@ -341,7 +341,7 @@ public static class BytesHelper
     /// </summary>
     /// <param name="ipStr"></param>
     /// <returns></returns>
-    public static byte[] IP2Bin(string ipStr)
+    public static byte[]? IP2Bin(string ipStr)
     {
         if (ipStr == null)
         {

@@ -23,7 +23,7 @@ namespace FyLib
         /// <returns></returns>
         public static bool IsIP(string IP)
         {
-            if (IP.IsNullOrEmpty())
+            if (IP.IsNull)
             {
                 return false;
             }
@@ -128,7 +128,7 @@ namespace FyLib
             }
             var ipAddressParts = ip.Split('.');
 
-            var ipAddressArray =new byte[4];
+            var ipAddressArray = new byte[4];
 
             for (var i = 0; i < ipAddressParts.Length; i++)
             {
@@ -161,17 +161,17 @@ namespace FyLib
         /// <returns></returns>
         public static List<string>? GetAllAddress(string StartIP, string EndIP)
         {
-            if(IsIP(StartIP) == false) { return null; }
-            if(IsIP(EndIP) == false) { return null; }
+            if (IsIP(StartIP) == false) { return null; }
+            if (IsIP(EndIP) == false) { return null; }
             var ls = new List<string>();
             var end = IPtoBytes(EndIP);
             var start = IPtoBytes(StartIP);
-            if(end ==null || start ==null) return null;
-            var len =end.ToInt() - start.ToInt();
-            if(len<0) return null;  
-            for (var i = 0; i < len+1; i++)
+            if (end == null || start == null) return null;
+            var len = end.ToInt() - start.ToInt();
+            if (len < 0) return null;
+            for (var i = 0; i < len + 1; i++)
             {
-                var temp = $"{start[0]}.{start[1]}.{start[2]}.{start[3]+i}";
+                var temp = $"{start[0]}.{start[1]}.{start[2]}.{start[3] + i}";
                 ls.Add(temp);
             }
             return ls;
@@ -202,7 +202,7 @@ namespace FyLib
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public  static string GetLocalIPAddressBase()
+        public static string GetLocalIPAddressBase()
         {
             // 创建一个Socket，指定使用IPv4，类型为Dgram(数据报，UDP), 协议为0（自动选择）
             using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, 0);

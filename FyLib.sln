@@ -5,10 +5,6 @@ VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FyLib", "FyLib\FyLib.csproj", "{527E52C8-4D66-4B2A-88D5-089B50AA9BB2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FyLibTest", "FyLibTest\FyLibTest.csproj", "{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFyLib", "WinFyLib\WinFyLib.csproj", "{8FDC8039-791F-46E6-BAAD-CEBBC0EDF4BE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{527E52C8-4D66-4B2A-88D5-089B50AA9BB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{527E52C8-4D66-4B2A-88D5-089B50AA9BB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{527E52C8-4D66-4B2A-88D5-089B50AA9BB2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E1E0FD8-8E96-4500-ABE3-372C99DBD92A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8FDC8039-791F-46E6-BAAD-CEBBC0EDF4BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8FDC8039-791F-46E6-BAAD-CEBBC0EDF4BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8FDC8039-791F-46E6-BAAD-CEBBC0EDF4BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8FDC8039-791F-46E6-BAAD-CEBBC0EDF4BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

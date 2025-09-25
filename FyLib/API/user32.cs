@@ -5,7 +5,10 @@ using System.Text;
 
 namespace FyLib.API
 {
-    public static class user32
+    /// <summary>
+    /// user32.dll API 封装类
+    /// </summary>
+    public static class User32
     {
         /// <summary>
         /// 发送消息

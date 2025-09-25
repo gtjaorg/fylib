@@ -1,5 +1,8 @@
 namespace FyLib;
 
+/// <summary>
+/// 字节数组扩展方法
+/// </summary>
 public static class BytesExtension
 {
     /// <summary>

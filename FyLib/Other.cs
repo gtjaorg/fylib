@@ -428,7 +428,7 @@ public static class Other
     /// <returns></returns>
     public static string DomainToIp(string domain)
     {
-        if (domain.IsIp())
+        if (domain.IsIp)
         {
             return domain;
         }

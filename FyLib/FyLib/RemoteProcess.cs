@@ -28,7 +28,7 @@ namespace FyLib.FyLib
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public ProcessModule? getModule(string name)
+        public ProcessModule? GetModule(string name)
         {
             var module = Process.Modules.Cast<ProcessModule>().Where(a => a.ModuleName == "WeChatWin.dll").FirstOrDefault();
             return module;
@@ -36,9 +36,9 @@ namespace FyLib.FyLib
         /// <summary>
         /// 析构函数
         /// </summary>
-         ~RemoteProcess()
+        ~RemoteProcess()
         {
-            if(this.ProcessHandle!= IntPtr.Zero)
+            if (this.ProcessHandle != IntPtr.Zero)
             {
                 kernel32.CloseHandle(this.ProcessHandle);
             }
@@ -61,17 +61,17 @@ namespace FyLib.FyLib
         /// <param name="DesiredAccess"></param>
         /// <param name="InheritHandle"></param>
         /// <returns></returns>
-        public bool openProcess(int DesiredAccess = PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, bool InheritHandle =false)
+        public bool OpenProcess(int DesiredAccess = PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, bool InheritHandle = false)
         {
-            this.ProcessHandle =  kernel32.OpenProcess(DesiredAccess, InheritHandle, Process.Id);
-            return this.ProcessHandle!= IntPtr.Zero;
+            this.ProcessHandle = kernel32.OpenProcess(DesiredAccess, InheritHandle, Process.Id);
+            return this.ProcessHandle != IntPtr.Zero;
         }
         /// <summary>
         /// 读取内存整数
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public int readMemory(nint address)
+        public int ReadMemory(nint address)
         {
             var buffer = new byte[4]; // 读取的数据存放在这里
             var bytesRead = 0;
@@ -91,7 +91,7 @@ namespace FyLib.FyLib
         /// <param name="address"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        public byte[]? readMemory(nint address,int len)
+        public byte[]? ReadMemory(nint address, int len)
         {
             var buffer = new byte[len]; // 读取的数据存放在这里
             var bytesRead = 0;
@@ -110,9 +110,9 @@ namespace FyLib.FyLib
         /// <param name="add"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        public string readUnicode(nint add,int len =100)
+        public string ReadUnicode(nint add, int len = 100)
         {
-            var data = readMemory(add, len);
+            var data = ReadMemory(add, len);
             if (data == null) return "";
             int FindIndex(byte[] array)
             {
@@ -129,7 +129,7 @@ namespace FyLib.FyLib
             var truncatedData = new byte[index]; // 创建一个新的字节数组，长度为第一个 00 字节的索引
             Array.Copy(data, truncatedData, index);
 
-            var str  = Encoding.Unicode.GetString(truncatedData);
+            var str = Encoding.Unicode.GetString(truncatedData);
             return str;
         }
 
@@ -138,9 +138,9 @@ namespace FyLib.FyLib
         /// </summary>
         /// <param name="len"></param>
         /// <returns></returns>
-        public nint VirtualAllocEx(uint len=1024)
+        public nint VirtualAllocEx(uint len = 1024)
         {
-            var add=  kernel32.VirtualAllocEx(this.ProcessHandle, 0, len, kernel32.MEM_COMMIT, 64);
+            var add = kernel32.VirtualAllocEx(this.ProcessHandle, 0, len, kernel32.MEM_COMMIT, 64);
             return add;
         }
         /// <summary>
@@ -149,7 +149,7 @@ namespace FyLib.FyLib
         /// <param name="add"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        public bool FreeAllocEx(nint add, uint len=0)
+        public bool FreeAllocEx(nint add, uint len = 0)
         {
             return kernel32.VirtualFreeEx(ProcessHandle, add, len, kernel32.MEM_RELEASE);
         }
@@ -159,7 +159,7 @@ namespace FyLib.FyLib
         /// <param name="add"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool writeMemory(nint add, int value)
+        public bool WriteMemory(nint add, int value)
         {
             var buff = BitConverter.GetBytes(value);
             var b = kernel32.WriteProcessMemory(ProcessHandle, add, buff, 4, out var len);
@@ -170,9 +170,8 @@ namespace FyLib.FyLib
         /// </summary>
         /// <param name="add"></param>
         /// <param name="value"></param>
-        /// <param name="len"></param>
         /// <returns></returns>
-        public bool writeMemory(nint add, byte[] value)
+        public bool WriteMemory(nint add, byte[] value)
         {
             var b = kernel32.WriteProcessMemory(ProcessHandle, add, value, (uint)value.Length, out var ok);
             return b;
@@ -183,7 +182,7 @@ namespace FyLib.FyLib
         /// <param name="address"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public nint creadThread(nint address,nint param =0)
+        public nint CreadThread(nint address, nint param = 0)
         {
             return kernel32.CreateRemoteThread(ProcessHandle, IntPtr.Zero, 0, address, param, 0, IntPtr.Zero);
         }
@@ -191,7 +190,7 @@ namespace FyLib.FyLib
         /// 关闭句柄
         /// </summary>
         /// <returns></returns>
-        public int closeHandle()
+        public int CloseHandle()
         {
             return kernel32.CloseHandle(this.ProcessHandle);
         }

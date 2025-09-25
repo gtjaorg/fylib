@@ -6,6 +6,40 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
+/// <summary>
+/// 哈希和加密算法帮助类，提供各种常用的哈希计算和加密解密功能
+/// </summary>
+/// <remarks>
+/// 该类包含以下主要功能模块：
+/// 
+/// 1. **CRC32校验算法**
+///    - 提供标准IEEE 802.3 CRC32校验值计算
+///    - 支持字节数组和字符串输入
+///    - 可输出字节数组或十六进制字符串格式
+/// 
+/// 2. **MD5哈希算法**
+///    - 计算MD5哈希值（注意：不推荐用于安全敏感场景）
+///    - 支持字节数组和十六进制字符串输出
+/// 
+/// 3. **SHA系列哈希算法**
+///    - SHA-1（已过时，不推荐安全使用）
+///    - SHA-256（推荐用于安全应用）
+///    - SHA-512（最高安全级别）
+/// 
+/// 4. **QQ TEA/XTEA加密算法**
+///    - QQ协议专用的TEA加密算法
+///    - 扩展TEA（XTEA）算法
+///    - 支持加密和解密操作
+/// 
+/// 5. **QQ协议专用功能**
+///    - QQ官方认证签名生成
+///    - 复杂的多层加密处理
+/// 
+/// 使用建议：
+/// - 安全应用请使用SHA-256或SHA-512
+/// - 数据完整性检查可使用CRC32
+/// - QQ相关开发使用专门的QQ TEA算法
+/// </remarks>
 public static class HashHelper
 {
     /// <summary>
@@ -16,8 +50,19 @@ public static class HashHelper
     /// </remarks>
     public class CRC32
     {
-        private static uint[] crcTable;
+        /// <summary>
+        /// CRC32查找表，用于加速CRC32计算
+        /// </summary>
+        private static uint[] crcTable = null!;
 
+        /// <summary>
+        /// 初始化CRC32类的实例，生成CRC32校验表
+        /// </summary>
+        /// <remarks>
+        /// 构造函数将创建一个包含256个元素的CRC32查找表，用于快速计算CRC32校验值。
+        /// 使用标准的CRC32多项式0xEDB88320（IEEE 802.3标准）。
+        /// 查找表的生成基于多项式除法原理，预先计算所有可能的8位值对应的CRC32值。
+        /// </remarks>
         public CRC32()
         {
             const uint polynomial = 0xedb88320;
@@ -37,10 +82,19 @@ public static class HashHelper
             }
         }
         /// <summary>
-        /// 
+        /// 计算字节数组的CRC32校验值
         /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
+        /// <param name="bytes">要计算CRC32校验值的字节数组</param>
+        /// <returns>返回32位无符号整数形式的CRC32校验值</returns>
+        /// <remarks>
+        /// CRC32算法是一种循环冗余检查码，广泛用于数据完整性验证。
+        /// 该方法使用IEEE 802.3标准的CRC32算法，初始值为0xFFFFFFFF，最终结果取反。
+        /// 计算过程：
+        /// 1. 初始化CRC值为0xFFFFFFFF
+        /// 2. 对每个输入字节，与CRC的低8位异或作为查表索引
+        /// 3. 用查表结果与CRC右移8位的结果异或，更新CRC值
+        /// 4. 处理完所有字节后，对最终CRC值取反得到结果
+        /// </remarks>
         public uint GetCRC32(byte[] bytes)
         {
             var crcValue = 0xffffffff;
@@ -53,6 +107,16 @@ public static class HashHelper
             return ~crcValue;
         }
 
+        /// <summary>
+        /// 计算字符串的CRC32校验值
+        /// </summary>
+        /// <param name="str">要计算CRC32校验值的字符串</param>
+        /// <returns>返回32位无符号整数形式的CRC32校验值</returns>
+        /// <remarks>
+        /// 该方法首先将输入字符串使用系统默认编码（通常是UTF-8或GBK）转换为字节数组，
+        /// 然后调用GetCRC32(byte[])方法计算CRC32校验值。
+        /// 注意：不同的字符编码可能产生不同的CRC32值，因此在跨平台或多语言环境中需要注意编码一致性。
+        /// </remarks>
         public uint GetCRC32(string str)
         {
             var bytes = Encoding.Default.GetBytes(str);
@@ -70,17 +134,17 @@ public static class HashHelper
 
         private byte[] Key;
 
-        private byte[] Out;
+        private byte[] Out = [];
 
         private long padding;
 
-        private byte[] Plain;
+        private byte[] Plain = [];
 
         private long Pos;
 
         private long preCrypt;
 
-        private byte[] prePlain;
+        private byte[] prePlain = [];
 
         private Random rd;
 
@@ -569,20 +633,32 @@ public static class HashHelper
         }
     }
     /// <summary>
-    /// MD5
+    /// 计算字符串的MD5哈希值，返回字节数组
     /// </summary>
-    /// <param name="str"></param>
-    /// <returns></returns>
+    /// <param name="str">要计算MD5哈希值的字符串</param>
+    /// <returns>返回16字节的MD5哈希值数组</returns>
+    /// <remarks>
+    /// MD5是一种广泛使用的密码学哈希函数，产生128位（16字节）的哈希值。
+    /// 该方法使用系统默认编码将字符串转换为字节数组后计算MD5值。
+    /// 注意：MD5已被认为在密码学上不安全，建议在安全敏感的应用中使用SHA-256或更强的哈希算法。
+    /// 但MD5仍可用于数据完整性检查等非安全场景。
+    /// </remarks>
     public static byte[] MD5(string str)
     {
         var bytes = Encoding.Default.GetBytes(str);
         return MD5(bytes);
     }
     /// <summary>
-    /// MD5
+    /// 计算字符串的MD5哈希值，返回十六进制字符串
     /// </summary>
-    /// <param name="str"></param>
-    /// <returns> String </returns>
+    /// <param name="str">要计算MD5哈希值的字符串</param>
+    /// <returns>返回32位小写十六进制字符串形式的MD5哈希值</returns>
+    /// <remarks>
+    /// 该方法首先计算输入字符串的MD5哈希值，然后将结果转换为十六进制字符串格式。
+    /// 返回的字符串长度固定为32个字符，每个字节用两位十六进制数表示。
+    /// 十六进制字符使用小写字母（a-f），如果需要大写可以调用ToUpper()方法。
+    /// 这种格式便于存储、传输和比较，是最常见的MD5值表示方式。
+    /// </remarks>
     public static string MD5_(string str)
     {
         var bytes = Encoding.Default.GetBytes(str);
@@ -595,10 +671,15 @@ public static class HashHelper
         return text;
     }
     /// <summary>
-    /// MD5 
+    /// 计算字节数组的MD5哈希值，返回十六进制字符串
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns>String</returns>
+    /// <param name="value">要计算MD5哈希值的字节数组</param>
+    /// <returns>返回32位小写十六进制字符串形式的MD5哈希值</returns>
+    /// <remarks>
+    /// 该方法直接对输入的字节数组计算MD5哈希值，然后转换为十六进制字符串。
+    /// 相比字符串版本，该方法避免了字符编码转换的影响，适用于二进制数据的哈希计算。
+    /// 返回格式与MD5_(string)方法完全相同，都是32位小写十六进制字符串。
+    /// </remarks>
     public static string MD5_(byte[] value)
     {
         var array = MD5(value);
@@ -610,102 +691,197 @@ public static class HashHelper
         return text;
     }
     /// <summary>
-    /// MD5
+    /// 计算字节数组的MD5哈希值，返回字节数组
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <param name="value">要计算MD5哈希值的字节数组</param>
+    /// <returns>返回16字节的MD5哈希值数组</returns>
+    /// <remarks>
+    /// 这是MD5计算的核心方法，直接调用.NET的MD5.HashData方法。
+    /// MD5算法将任意长度的输入数据转换为固定长度的128位（16字节）摘要。
+    /// 该方法适用于需要原始字节形式MD5值的场景，如进一步的加密操作或二进制比较。
+    /// 使用了.NET 6+的新API MD5.HashData，相比传统方法更简洁高效。
+    /// </remarks>
     public static byte[] MD5(byte[] value)
     {
         return System.Security.Cryptography.MD5.HashData(value);
 
     }
     /// <summary>
-    /// QQTEA加密
+    /// 使用QQ TEA算法加密数据
     /// </summary>
-    /// <param name="value"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="value">要加密的字节数组数据</param>
+    /// <param name="key">16字节的加密密钥</param>
+    /// <returns>加密后的字节数组，如果密钥长度不正确则返回null</returns>
+    /// <remarks>
+    /// QQ TEA是腾讯QQ协议中使用的一种加密算法，基于标准TEA（Tiny Encryption Algorithm）算法改进。
+    /// 该算法的特点：
+    /// 1. 密钥长度必须是16字节（128位）
+    /// 2. 使用特定的轮数（16轮）和增量值进行加密
+    /// 3. 在QQ协议中广泛用于消息和数据包的加密
+    /// 4. 相比标准TEA，增加了额外的安全措施
+    /// 注意：如果密钥长度不是16字节，方法将返回null。
+    /// </remarks>
     public static byte[] QQTEAEncrypt(byte[] value, byte[] key)
     {
-        byte[] result = null;
         if (key.Length != 16)
         {
-            return result;
+            return [];
         }
         return new QQCrypter().TeanEncipher(value, key);
     }
     /// <summary>
-    /// QQTEA解密
+    /// 使用QQ TEA算法解密数据
     /// </summary>
-    /// <param name="value"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="value">要解密的字节数组数据</param>
+    /// <param name="key">16字节的解密密钥，必须与加密时使用的密钥相同</param>
+    /// <returns>解密后的字节数组，如果密钥长度不正确则返回null</returns>
+    /// <remarks>
+    /// 这是QQTEAEncrypt方法的逆操作，用于解密使用QQ TEA算法加密的数据。
+    /// 解密过程：
+    /// 1. 验证密钥长度是否为16字节
+    /// 2. 使用与加密相反的操作序列进行解密
+    /// 3. 恢复原始数据内容
+    /// 重要提醒：
+    /// - 解密密钥必须与加密密钥完全相同
+    /// - 如果数据已被篡改或密钥错误，解密结果可能是无意义的数据
+    /// - 密钥长度不正确时返回null
+    /// </remarks>
     public static byte[] QQTEADecrypt(byte[] value, byte[] key)
     {
-        byte[] result = null;
         if (key.Length != 16)
         {
-            return result;
+            return [];
         }
         return new QQCrypter().TeanDecipher(value, key);
     }
     /// <summary>
-    /// CRC32
+    /// 计算字节数组的CRC32校验值，返回字节数组形式
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <param name="value">要计算CRC32校验值的字节数组</param>
+    /// <returns>返回4字节的CRC32校验值数组（小端序）</returns>
+    /// <remarks>
+    /// 该方法是CRC32类的静态包装器，提供更便捷的调用方式。
+    /// 内部流程：
+    /// 1. 创建CRC32实例并计算校验值
+    /// 2. 将32位无符号整数转换为4字节数组
+    /// 3. 使用小端序（Little-Endian）字节顺序
+    /// 适用于需要字节形式CRC32值的场景，如网络协议或二进制文件格式。
+    /// </remarks>
     public static byte[] Crc32(byte[] value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value));
     }
     /// <summary>
-    /// CRC32
+    /// 计算字符串的CRC32校验值，返回字节数组形式
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <param name="value">要计算CRC32校验值的字符串</param>
+    /// <returns>返回4字节的CRC32校验值数组（小端序）</returns>
+    /// <remarks>
+    /// 字符串版本的CRC32计算，使用系统默认编码转换字符串。
+    /// 与Crc32(byte[])方法相同的处理流程，但需要先进行字符编码转换。
+    /// 注意：不同系统的默认编码可能不同，跨平台使用时需要考虑编码一致性。
+    /// </remarks>
     public static byte[] Crc32(string value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value));
     }
     /// <summary>
-    /// CRC32
+    /// 计算字符串的CRC32校验值，返回大写十六进制字符串
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <param name="value">要计算CRC32校验值的字符串</param>
+    /// <returns>返回8位大写十六进制字符串形式的CRC32校验值</returns>
+    /// <remarks>
+    /// 该方法提供最常用的CRC32输出格式 - 十六进制字符串。
+    /// 处理流程：
+    /// 1. 计算字符串的CRC32值
+    /// 2. 转换为4字节数组
+    /// 3. 转换为十六进制字符串并转为大写
+    /// 输出格式固定为8个大写十六进制字符（如：1A2B3C4D）。
+    /// 这种格式便于显示、比较和存储，是最常见的CRC32表示方式。
+    /// </remarks>
     public static string Crc32_(string value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value)).ToHex().ToUpper();
     }
     /// <summary>
-    /// CRC32
+    /// 计算字节数组的CRC32校验值，返回大写十六进制字符串
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <param name="value">要计算CRC32校验值的字节数组</param>
+    /// <returns>返回8位大写十六进制字符串形式的CRC32校验值</returns>
+    /// <remarks>
+    /// 字节数组版本的CRC32十六进制字符串输出。
+    /// 与Crc32_(string)方法输出格式完全相同，但直接处理字节数据。
+    /// 适用于二进制数据的CRC32校验，避免了字符编码的影响。
+    /// 输出为8位大写十六进制字符串格式。
+    /// </remarks>
     public static string Crc32_(byte[] value)
     {
         return BitConverter.GetBytes(new CRC32().GetCRC32(value)).ToHex().ToUpper();
     }
     /// <summary>
-    /// Xtea加密
+    /// 使用XTEA算法加密数据
     /// </summary>
-    /// <param name="value"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="value">要加密的字节数组数据</param>
+    /// <param name="key">16字节的加密密钥</param>
+    /// <returns>加密后的字节数组</returns>
+    /// <remarks>
+    /// XTEA（eXtended TEA）是TEA算法的扩展版本，提供更好的安全性。
+    /// 该算法特点：
+    /// 1. 密钥长度为16字节（128位）
+    /// 2. 使用32轮加密操作（相比TEA的16轮）
+    /// 3. 增量值为0x57E47E14，提供更好的随机性
+    /// 4. 能够抵抗相关密钥攻击和弱密钥攻击
+    /// 5. 比标准TEA具有更高的安全强度
+    /// XTEA在需要高效加密且安全性要求较高的场景中使用。
+    /// </remarks>
     public static byte[] XTeaEncrypt(byte[] value, byte[] key)
     {
         return new QQCrypter().XTeanEncipher(value, key);
     }
     /// <summary>
-    /// Xtea解密
+    /// 使用XTEA算法解密数据
     /// </summary>
-    /// <param name="value"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="value">要解密的字节数组数据</param>
+    /// <param name="key">16字节的解密密钥，必须与加密时使用的密钥相同</param>
+    /// <returns>解密后的字节数组</returns>
+    /// <remarks>
+    /// 这是XTeaEncrypt方法的逆操作，用于解密XTEA加密的数据。
+    /// 解密过程特点：
+    /// 1. 使用与加密相同的密钥和轮数设置
+    /// 2. 按相反的顺序执行加密操作
+    /// 3. 密钥必须与加密时完全相同
+    /// 4. 如果数据被篡改或密钥错误，解密结果将是无效数据
+    /// XTEA解密具有良好的错误检测能力，错误的密钥通常会产生明显的无效输出。
+    /// </remarks>
     public static byte[] XTeaDecrypt(byte[] value, byte[] key)
     {
         return new QQCrypter().XTeanDecipher(value, key);
     }
 
+    /// <summary>
+    /// 创建QQ协议的官方认证签名
+    /// </summary>
+    /// <param name="tzm">时间戳模数，用于计算哈希轮数</param>
+    /// <param name="OffKey">官方密钥</param>
+    /// <param name="bufSigPicNew">图片签名数据</param>
+    /// <param name="bufTGTGT">TGT票据数据</param>
+    /// <returns>返回包含MD5哈希值和CRC32校验值的20字节认证签名</returns>
+    /// <remarks>
+    /// 这是一个复杂的QQ协议认证签名生成算法，用于QQ客户端与服务器的安全通信。
+    /// 算法流程：
+    /// 1. 使用MD5对OffKey和bufSigPicNew进行哈希计算
+    /// 2. 创建RC4密钥流并进行流加密处理
+    /// 3. 基于时间戳计算哈希迭代轮数
+    /// 4. 使用TEA算法对数据进行多轮加密
+    /// 5. 最终生成16字节MD5哈希值和4字节CRC32校验值
+    /// 
+    /// 安全特性：
+    /// - 使用多种加密算法（MD5、RC4、TEA）的组合
+    /// - 时间戳相关的动态密钥生成
+    /// - 多层哈希迭代增强安全性
+    /// 
+    /// 注意：此方法专用于QQ协议，不适用于其他加密场景。
+    /// </remarks>
     public static byte[] CreateOfficial(int tzm, byte[] OffKey, byte[] bufSigPicNew, byte[] bufTGTGT)
     {
         var num = 4;
@@ -791,6 +967,21 @@ public static class HashHelper
         }
     }
 
+    /// <summary>
+    /// 计算字符串的SHA-256哈希值
+    /// </summary>
+    /// <param name="data">要计算哈希值的字符串数据</param>
+    /// <returns>返回64位大写十六进制字符串形式的SHA-256哈希值</returns>
+    /// <remarks>
+    /// SHA-256是SHA-2算法家族中的一种，产生256位（32字节）的哈希值。
+    /// 该算法具有以下特点：
+    /// 1. 密码学安全性高，目前被认为是安全的哈希算法
+    /// 2. 广泛应用于数字证书、区块链、数字签名等安全领域
+    /// 3. 输出长度固定为64个十六进制字符
+    /// 4. 使用UTF-8编码将字符串转换为字节数组进行计算
+    /// 5. 返回大写形式的十六进制字符串（A-F）
+    /// SHA-256相比MD5和SHA-1更安全，推荐在安全敏感的应用中使用。
+    /// </remarks>
     public static string sha256(string data)
     {
         var bytes = Encoding.UTF8.GetBytes(data);
@@ -803,6 +994,17 @@ public static class HashHelper
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// 计算字节数组的SHA-256哈希值
+    /// </summary>
+    /// <param name="data">要计算哈希值的字节数组数据</param>
+    /// <returns>返回64位大写十六进制字符串形式的SHA-256哈希值</returns>
+    /// <remarks>
+    /// 该方法直接对字节数组进行SHA-256哈希计算，避免了字符编码的影响。
+    /// 适用于二进制数据、文件内容或任意字节序列的哈希计算。
+    /// 输出格式与字符串版本相同，都是64位大写十六进制字符串。
+    /// 在处理文件哈希、数据完整性校验等场景中特别有用。
+    /// </remarks>
     public static string sha256(byte[] data)
     {
         var array = SHA256.Create().ComputeHash(data);
@@ -814,6 +1016,21 @@ public static class HashHelper
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// 计算字符串的SHA-1哈希值
+    /// </summary>
+    /// <param name="data">要计算哈希值的字符串数据</param>
+    /// <returns>返回40位大写十六进制字符串形式的SHA-1哈希值</returns>
+    /// <remarks>
+    /// SHA-1是较早期的安全哈希算法，产生160位（20字节）的哈希值。
+    /// 重要说明：
+    /// 1. SHA-1已被发现存在安全漏洞，不建议在新的安全敏感应用中使用
+    /// 2. 输出长度固定为40个十六进制字符
+    /// 3. 使用UTF-8编码将字符串转换为字节数组
+    /// 4. 返回大写形式的十六进制字符串
+    /// 5. 仅适用于兼容性要求或非安全场景
+    /// 建议在新项目中使用SHA-256或更强的哈希算法替代SHA-1。
+    /// </remarks>
     public static string sha1(string data)
     {
         var bytes = Encoding.UTF8.GetBytes(data);
@@ -826,6 +1043,19 @@ public static class HashHelper
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// 计算字节数组的SHA-1哈希值
+    /// </summary>
+    /// <param name="data">要计算哈希值的字节数组数据</param>
+    /// <returns>返回40位大写十六进制字符串形式的SHA-1哈希值</returns>
+    /// <remarks>
+    /// 该方法直接对字节数组进行SHA-1哈希计算。
+    /// 与字符串版本相同的安全性警告：
+    /// - SHA-1已被证明存在碰撞攻击漏洞
+    /// - 不建议用于安全敏感的新应用
+    /// - 仅在需要兼容旧系统或非安全场景中使用
+    /// 输出格式为40位大写十六进制字符串。
+    /// </remarks>
     public static string sha1(byte[] data)
     {
         var array = SHA1.Create().ComputeHash(data);
@@ -837,6 +1067,21 @@ public static class HashHelper
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// 计算字节数组的SHA-512哈希值
+    /// </summary>
+    /// <param name="data">要计算哈希值的字节数组数据</param>
+    /// <returns>返回128位大写十六进制字符串形式的SHA-512哈希值</returns>
+    /// <remarks>
+    /// SHA-512是SHA-2算法家族中最强的变体，产生512位（64字节）的哈希值。
+    /// 该算法特点：
+    /// 1. 提供极高的密码学安全性
+    /// 2. 输出长度固定为128个十六进制字符
+    /// 3. 计算速度相对较慢，但安全性最高
+    /// 4. 适用于最高安全要求的应用场景
+    /// 5. 直接处理字节数组数据，避免编码问题
+    /// SHA-512在需要最高安全级别的场合中使用，如高价值数据的完整性保护。
+    /// </remarks>
     public static string sha512(byte[] data)
     {
         var array = SHA512.Create().ComputeHash(data);
@@ -848,6 +1093,21 @@ public static class HashHelper
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// 计算字符串的SHA-512哈希值
+    /// </summary>
+    /// <param name="data">要计算哈希值的字符串数据</param>
+    /// <returns>返回128位大写十六进制字符串形式的SHA-512哈希值</returns>
+    /// <remarks>
+    /// SHA-512字符串版本，首先将字符串用UTF-8编码转换为字节数组。
+    /// 该方法结合了最高级别的安全性和字符串处理的便利性。
+    /// 特点：
+    /// 1. 产生512位的超长哈希值，提供最强的碰撞抗性
+    /// 2. 输出128个大写十六进制字符
+    /// 3. 适用于密码存储、数字签名、区块链等高安全场景
+    /// 4. 使用UTF-8编码确保多语言字符的正确处理
+    /// 在性能要求不是首要考虑因素且需要最高安全性的场合中推荐使用。
+    /// </remarks>
     public static string sha512(string data)
     {
         var bytes = Encoding.UTF8.GetBytes(data);

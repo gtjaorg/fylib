@@ -4,6 +4,9 @@ using System.Text;
 
 namespace FyLib.Pack
 {
+    /// <summary>
+    /// 表示一个数据单元，包含字节数组和可选的标记对象。
+    /// </summary>
     public class Token
     {
         /// <summary>

@@ -5,7 +5,10 @@ using System.Text;
 
 namespace FyLib.API
 {
-    public static class shlwapi
+    /// <summary>
+    /// shlwapi.dll API 封装类
+    /// </summary>
+    public static class Shlwapi
     {
         /// <summary>
         /// 获取文件扩展名

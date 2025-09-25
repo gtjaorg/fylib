@@ -4,6 +4,9 @@ using System.Text;
 
 namespace FyLib.Pack
 {
+    /// <summary>
+    /// 表示一段十六进制字符串，可以方便地转换为字节数组。
+    /// </summary>
     public class Hex
     {
         /// <summary>

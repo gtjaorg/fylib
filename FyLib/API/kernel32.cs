@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using FyLib.API;
 
 /// <summary>
 /// 常用API合集
@@ -162,7 +163,7 @@ public static class kernel32
     public static extern IntPtr SetHandleCount(byte[] value);
 
     /// <summary>
-    ///
+    /// 修改内存权限
     /// </summary>
     /// <param name="lpAddress"></param>
     /// <param name="dwSize"></param>
@@ -201,18 +202,51 @@ public static class kernel32
     /// <returns>返回值是当前进程的伪句柄。</returns>
     [DllImport("kernel32.dll")]
     public static extern IntPtr GetCurrentProcess();
+    /// <summary>
+    /// 进程访问权限
+    /// </summary>
     [Flags]
     public enum ProcessAccessFlags : uint
     {
+        /// <summary>
+        /// 所有权限
+        /// </summary>
         All = 0x001F0FFF,
+        /// <summary>
+        /// 终止进程
+        /// </summary>
         Terminate = 0x00000001,
+        /// <summary>
+        /// 创建线程
+        /// </summary>
         CreateThread = 0x00000002,
+        /// <summary>
+        /// 虚拟内存操作
+        /// </summary>
         VMOperation = 0x00000008,
+        /// <summary>
+        /// 虚拟内存读取
+        /// </summary>
         VMRead = 0x00000010,
+        /// <summary>
+        /// 虚拟内存写入
+        /// </summary>
         VMWrite = 0x00000020,
+        /// <summary>
+        /// 复制句柄
+        /// </summary>
         DupHandle = 0x00000040,
+        /// <summary>
+        /// 设置信息
+        /// </summary>
         SetInformation = 0x00000200,
+        /// <summary>
+        /// 查询信息
+        /// </summary>
         QueryInformation = 0x00000400,
+        /// <summary>
+        /// 同步
+        /// </summary>
         Synchronize = 0x00100000
     }
     /// <summary>
@@ -238,7 +272,14 @@ public static class kernel32
     /// <param name="count">数量</param>
     /// <returns></returns>
     [DllImport("kernel32.dll")]
-    public static extern int GetProcessHandleCount(IntPtr handle,ref int count);
+    public static extern int GetProcessHandleCount(IntPtr handle, ref int count);
+    /// <summary>
+    /// 检索有关指定的 MS-DOS 设备名称的信息。
+    /// </summary>
+    /// <param name="lpDeviceName"></param>
+    /// <param name="lpTargetPath"></param>
+    /// <param name="ucchMax"></param>
+    /// <returns></returns>
 
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern uint QueryDosDevice(string lpDeviceName, StringBuilder lpTargetPath, int ucchMax);

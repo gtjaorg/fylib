@@ -96,13 +96,13 @@ public class DebugLog
         text = stringBuilder.ToString();
         lock (m_pLock)
         {
-            var windowTextLengthA = user32.GetWindowTextLengthA(m_iHandle);
+            var windowTextLengthA = User32.GetWindowTextLengthA(m_iHandle);
             if (windowTextLengthA >= checked(65535 - windowTextLengthA))
             {
-                user32.SetWindowTextA(m_iHandle, "");
+                User32.SetWindowTextA(m_iHandle, "");
             }
-            user32.SendMessage(m_iHandle, 177, -2, -1);
-            user32.SendMessageA(m_iHandle, 194, 1, text);
+            User32.SendMessage(m_iHandle, 177, -2, -1);
+            User32.SendMessageA(m_iHandle, 194, 1, text);
         }
     }
 
@@ -111,7 +111,7 @@ public class DebugLog
     /// </summary>
     public void ClearEdit()
     {
-        user32.SetWindowTextA(m_iHandle, "");
+        User32.SetWindowTextA(m_iHandle, "");
     }
 
     /// <summary>
@@ -128,11 +128,11 @@ public class DebugLog
             {
                 Directory.CreateDirectory(text);
             }
-            if (filename.Right(".").IsNullOrEmpty())
+            if (filename.Right(".").IsNull)
             {
                 filename += ".txt";
             }
-            new WirteLog(text + "\\" + filename).WriteLine(log);
+            new WriteLog(text + "\\" + filename).WriteLine(log);
         }
     }
 }

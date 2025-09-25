@@ -5,6 +5,9 @@ using System.Text;
 
 namespace FyLib
 {
+    /// <summary>
+    /// 路径辅助类
+    /// </summary>
     public static class PathHelper
     {
         /// <summary>

@@ -5,7 +5,10 @@ using System;
 
 namespace FyLib
 {
-    public class WirteLog
+    /// <summary>
+    /// 写入日志
+    /// </summary>
+    public class WriteLog
     {
         private string _fileName;
 
@@ -30,7 +33,7 @@ namespace FyLib
         /// 构造函数
         /// </summary>
         /// <param name="fileName">文件名</param>
-        public WirteLog(string fileName)
+        public WriteLog(string fileName)
         {
             _fileName = fileName;
         }
@@ -43,10 +46,8 @@ namespace FyLib
         {
             if (!File.Exists(fileName))
             {
-                using (var fileStream = File.Create(fileName))
-                {
-                    fileStream.Close();
-                }
+                using var fileStream = File.Create(fileName);
+                fileStream.Close();
             }
         }
 
@@ -63,32 +64,7 @@ namespace FyLib
             }
             using var fileStream = new FileStream(_fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite, 8, FileOptions.Asynchronous);
             var bytes = Encoding.Default.GetBytes(content + newLine);
-            var flag = true;
-            long num = bytes.Length;
-            var num2 = 0L;
-            while (flag)
-            {
-                try
-                {
-                    if (num2 >= fileStream.Length)
-                    {
-                        fileStream.Lock(num2, num);
-                        lockDic[num2] = num;
-                        flag = false;
-                    }
-                    else
-                    {
-                        num2 = fileStream.Length;
-                    }
-                }
-                catch
-                {
-                    for (; !lockDic.ContainsKey(num2); num2 = checked(num2 + lockDic[num2]))
-                    {
-                    }
-                }
-            }
-            fileStream.Seek(num2, SeekOrigin.Begin);
+            fileStream.Seek(0, SeekOrigin.End);
             fileStream.Write(bytes, 0, bytes.Length);
             fileStream.Close();
         }

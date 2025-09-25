@@ -77,7 +77,7 @@ namespace FyLib.Http
         {
             _url = new Uri(domain);
             _path = _url.LocalPath;
-            if (!_url.Query.IsNullOrEmpty())
+            if (!_url.Query.IsNull)
                 _url.Query.Split("&").Select(a => a.Split("=")).ToList().ForEach(a =>
                 {
                     if (a[0].StartsWith("?"))
@@ -207,6 +207,8 @@ namespace FyLib.Http
             {
                 msg.Headers.Add(item.Key, item.Value);
             }
+            if (Client == null)
+                throw new InvalidOperationException("HttpClient is not initialized.");
             var result = Client.SendAsync(msg, cancellationToken);
             if (!_useWebProxy)
                 Project.HttpPool.Push(_url.ToString(), Client);
@@ -292,7 +294,7 @@ namespace FyLib.Http
         public async Task<JToken?> GetAsJsonAsync()
         {
             var str = await GetAsStringAsync();
-            if (str == null || str.IsNullOrEmpty()) return null;
+            if (str == null || str.IsNull) return null;
             return JToken.Parse(str);
         }
         /// <summary>
@@ -303,7 +305,7 @@ namespace FyLib.Http
         public async Task<T?> GetAsObjectAsync<T>(CancellationToken cancellationToken = default)
         {
             var str = await GetAsStringAsync(cancellationToken);
-            if (str == null || str.IsNullOrEmpty()) return default(T);
+            if (str == null || str.IsNull) return default(T);
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str, _jsonSerializerSettings);
         }
         #endregion
@@ -349,6 +351,8 @@ namespace FyLib.Http
                 {
                     msg.Version = new Version(2, 0);
                 }
+                if (Client == null)
+                    throw new InvalidOperationException("HttpClient is not initialized.");
                 var result = await Client.SendAsync(msg, cancellationToken);
                 this.ResponseMessage = result;
                 if (!_useWebProxy)
@@ -379,6 +383,8 @@ namespace FyLib.Http
             {
                 msg.Headers.Add(item.Key, item.Value);
             }
+            if (Client == null)
+                throw new InvalidOperationException("HttpClient is not initialized.");
             var result = Client.SendAsync(msg, cancellationToken);
             if (_useWebProxy == false)
                 Project.HttpPool.Push(_url.ToString(), Client);
@@ -762,7 +768,7 @@ namespace FyLib.Http
         public async Task<T?> PostAsObjectAsync<T>(string body, Encoding? encoding = null, CancellationToken cancellationToken = default)
         {
             var str = await PostAsStringAsync(body, encoding, cancellationToken);
-            if (str == null || str.IsNullOrEmpty()) return default;
+            if (str == null || str.IsNull) return default;
             return JsonConvert.DeserializeObject<T>(str, _jsonSerializerSettings);
         }
         /// <summary>
@@ -775,7 +781,7 @@ namespace FyLib.Http
         public async Task<T?> PostAsObjectAsync<T>(JToken body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
-            if (str == null || str.IsNullOrEmpty()) return default;
+            if (str == null || str.IsNull) return default;
             return JsonConvert.DeserializeObject<T>(str);
         }
         /// <summary>
@@ -788,7 +794,7 @@ namespace FyLib.Http
         public async Task<T?> PostAsObjectAsync<T>(object body, Encoding? encoding = null)
         {
             var str = await PostAsStringAsync(body, encoding);
-            if (str == null || str.IsNullOrEmpty()) return default;
+            if (str == null || str.IsNull) return default;
             return JsonConvert.DeserializeObject<T>(str);
         }
         /// <summary>
@@ -800,7 +806,7 @@ namespace FyLib.Http
         public async Task<T?> PostAsObjectAsync<T>(byte[] body)
         {
             var str = await PostAsStringAsync(body);
-            if (str == null || str.IsNullOrEmpty()) return default;
+            if (str == null || str.IsNull) return default;
             return JsonConvert.DeserializeObject<T>(str);
         }
         #endregion

@@ -155,9 +155,9 @@ namespace FyLib.Pack
         public byte[] ReadBytes(int len)
         {
             var readOnlySpan = Read(len);
-            if (readOnlySpan == null)
+            if (readOnlySpan.IsEmpty)
             {
-                return new byte[0];
+                return [];
             }
             return readOnlySpan.ToArray();
         }

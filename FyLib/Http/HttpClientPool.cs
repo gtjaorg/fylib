@@ -12,23 +12,23 @@ namespace FyLib.Http
     /// </summary>
     public class HttpClientPool : IDisposable
     {
-        private readonly ConcurrentDictionary<string, ConcurrentQueue<PooledHttpClientInfo>> _clientPool 
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<PooledHttpClientInfo>> _clientPool
             = new ConcurrentDictionary<string, ConcurrentQueue<PooledHttpClientInfo>>();
-        
+
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly Task _cleanupTask;
-        
+
         /// <summary>
         /// 队列长度
         /// </summary>
-        public int Length 
-        { 
-            get 
-            { 
-                return _clientPool.Values.Sum(q => q.Count); 
-            } 
+        public int Length
+        {
+            get
+            {
+                return _clientPool.Values.Sum(q => q.Count);
+            }
         }
-        
+
         /// <summary>
         /// HttpClientPool
         /// </summary>
@@ -39,7 +39,7 @@ namespace FyLib.Http
                 await CheckTimeOutAsync();
             }, _cancellationTokenSource.Token);
         }
-        
+
         private async Task CheckTimeOutAsync()
         {
             while (!_cancellationTokenSource.Token.IsCancellationRequested)
@@ -47,13 +47,13 @@ namespace FyLib.Http
                 try
                 {
                     await Task.Delay(5000, _cancellationTokenSource.Token); // 每5秒检查一次
-                    
+
                     var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                     foreach (var kvp in _clientPool)
                     {
                         var queue = kvp.Value;
                         var clientsToKeep = new ConcurrentQueue<PooledHttpClientInfo>();
-                        
+
                         while (queue.TryDequeue(out var clientInfo))
                         {
                             // 如果客户端超过180秒未使用，则释放它
@@ -66,7 +66,7 @@ namespace FyLib.Http
                                 clientsToKeep.Enqueue(clientInfo);
                             }
                         }
-                        
+
                         // 将有效的客户端放回队列
                         while (clientsToKeep.TryDequeue(out var clientInfo))
                         {
@@ -85,7 +85,7 @@ namespace FyLib.Http
                 }
             }
         }
-        
+
         /// <summary>
         /// 添加HttpClient到池中
         /// </summary>
@@ -95,30 +95,30 @@ namespace FyLib.Http
         {
             if (string.IsNullOrEmpty(baseUrl))
                 throw new ArgumentException("BaseUrl cannot be null or empty", nameof(baseUrl));
-            
+
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
-            
+
             var clientInfo = new PooledHttpClientInfo
             {
                 Client = client,
                 LastUsedTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
-            
+
             var queue = _clientPool.GetOrAdd(baseUrl, _ => new ConcurrentQueue<PooledHttpClientInfo>());
             queue.Enqueue(clientInfo);
         }
-        
+
         /// <summary>
         /// 从池中获取HttpClient
         /// </summary>
         /// <param name="baseUrl"></param>
         /// <returns></returns>
-        public HttpClient Pop(string baseUrl)
+        public HttpClient? Pop(string baseUrl)
         {
             if (string.IsNullOrEmpty(baseUrl))
                 return null;
-                
+
             if (_clientPool.TryGetValue(baseUrl, out var queue))
             {
                 if (queue.TryDequeue(out var clientInfo))
@@ -127,10 +127,10 @@ namespace FyLib.Http
                     return clientInfo.Client;
                 }
             }
-            
+
             return null;
         }
-        
+
         /// <summary>
         /// 释放资源
         /// </summary>
@@ -139,7 +139,7 @@ namespace FyLib.Http
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        
+
         /// <summary>
         /// 释放资源
         /// </summary>
@@ -147,10 +147,10 @@ namespace FyLib.Http
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
-            
+
             // 停止清理任务
             _cancellationTokenSource.Cancel();
-            
+
             try
             {
                 // 等待清理任务完成（最多等待1秒）
@@ -160,7 +160,7 @@ namespace FyLib.Http
             {
                 // 忽略等待过程中的异常
             }
-            
+
             // 释放所有HttpClient实例
             foreach (var queue in _clientPool.Values)
             {
@@ -169,15 +169,15 @@ namespace FyLib.Http
                     clientInfo.Client?.Dispose();
                 }
             }
-            
+
             _clientPool.Clear();
             _cancellationTokenSource.Dispose();
         }
     }
-    
+
     internal class PooledHttpClientInfo
     {
-        public HttpClient Client { get; set; }
+        public HttpClient Client { get; set; } = null!;
         public long LastUsedTime { get; set; }
     }
 }
