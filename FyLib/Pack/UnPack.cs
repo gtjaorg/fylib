@@ -125,7 +125,7 @@ namespace FyLib.Pack
         {
             var array = new byte[2];
             MS.Read(array, 0, 2);
-            return BytesHelper.ToShort(array);
+            return array.ToShort();
         }
 
         /// <summary>

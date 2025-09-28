@@ -263,7 +263,7 @@ namespace FyLib.Pack
         public void push(int i)
         {
             ThrowIfDisposed();
-            BW!.Write(BytesHelper.ToBin(i));
+            BW!.Write(BytesExtension.ToBin(i));
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace FyLib.Pack
         public void push(uint i)
         {
             ThrowIfDisposed();
-            BW!.Write(BytesHelper.ToBin(i));
+            BW!.Write(BytesExtension.ToBin(i));
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace FyLib.Pack
         public void push(short i)
         {
             ThrowIfDisposed();
-            BW!.Write(BytesHelper.ToBin(i));
+            BW!.Write(BytesExtension.ToBin(i));
         }
 
         /// <summary>
@@ -329,7 +329,7 @@ namespace FyLib.Pack
         public void push(long value)
         {
             ThrowIfDisposed();
-            BW!.Write(BytesHelper.ToBin(value));
+            BW!.Write(BytesExtension.ToBin(value));
         }
 
         /// <summary>
@@ -340,7 +340,7 @@ namespace FyLib.Pack
         public void push(float value)
         {
             ThrowIfDisposed();
-            BW!.Write(BytesHelper.ToBin(value));
+            BW!.Write(BytesExtension.ToBin(value));
         }
 
         /// <summary>
@@ -351,7 +351,7 @@ namespace FyLib.Pack
         public void push(double value)
         {
             ThrowIfDisposed();
-            BW!.Write(BytesHelper.ToBin(value));
+            BW!.Write(BytesExtension.ToBin(value));
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -412,6 +413,423 @@ public static class StringExtension
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// BASE64 解码
+        /// </summary>
+        public string FromBase64
+        {
+            get
+            {
+                try
+                {
+                    var bytes = Convert.FromBase64String(source);
+                    return Encoding.UTF8.GetString(bytes);
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+        }
+
+        /// <summary>
+        /// URL 编码
+        /// </summary>
+        public string UrlEncode => Uri.EscapeDataString(source);
+
+        /// <summary>
+        /// URL 解码
+        /// </summary>
+        public string UrlDecode => Uri.UnescapeDataString(source);
+
+        /// <summary>
+        /// HTML 编码
+        /// </summary>
+        public string HtmlEncode => System.Net.WebUtility.HtmlEncode(source);
+
+        /// <summary>
+        /// HTML 解码
+        /// </summary>
+        public string HtmlDecode => System.Net.WebUtility.HtmlDecode(source);
+
+        /// <summary>
+        /// 判断是否为有效的电子邮箱地址
+        /// </summary>
+        public bool IsEmail
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return false;
+
+                try
+                {
+                    var addr = new System.Net.Mail.MailAddress(source);
+                    return addr.Address == source;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+        /// <summary>
+        /// 判断是否为有效的QQ号码
+        /// </summary>
+        public bool IsQQ
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return false;
+                if (source.Length < 5 || source.Length > 12)
+                    return false;
+                return Regex.IsMatch(source, "^[1-9][0-9]{4,}$");
+            }
+        }
+
+        /// <summary>
+        /// 判断是否为有效的手机号码（中国大陆）
+        /// </summary>
+        public bool IsPhone
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return false;
+
+                return Regex.IsMatch(source, @"^1[3-9]\d{9}$");
+            }
+        }
+
+        /// <summary>
+        /// 判断是否为有效的身份证号码（中国大陆）
+        /// </summary>
+        public bool IsIdCard
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return false;
+
+                // 18位身份证号码正则
+                if (!Regex.IsMatch(source, @"^\d{17}[\dXx]$"))
+                    return false;
+
+                // 验证校验码
+                var weights = new[] { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
+                var checkCodes = new[] { '1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2' };
+
+                var sum = 0;
+                for (var i = 0; i < 17; i++)
+                {
+                    sum += (source[i] - '0') * weights[i];
+                }
+
+                var checkCode = checkCodes[sum % 11];
+                return char.ToUpper(source[17]) == checkCode;
+            }
+        }
+
+        /// <summary>
+        /// 首字母大写
+        /// </summary>
+        public string Capitalize
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return source;
+
+                if (source.Length == 1)
+                    return source.ToUpper();
+
+                return char.ToUpper(source[0]) + source[1..];
+            }
+        }
+
+        /// <summary>
+        /// 驼峰命名转换（首字母小写）
+        /// </summary>
+        public string ToCamelCase
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return source;
+
+                var words = source.Split(new[] { ' ', '_', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                if (words.Length == 0)
+                    return source;
+
+                var result = new StringBuilder();
+                result.Append(words[0].ToLower());
+
+                for (var i = 1; i < words.Length; i++)
+                {
+                    if (words[i].Length > 0)
+                    {
+                        result.Append(char.ToUpper(words[i][0]));
+                        if (words[i].Length > 1)
+                            result.Append(words[i][1..].ToLower());
+                    }
+                }
+
+                return result.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 帕斯卡命名转换（首字母大写）
+        /// </summary>
+        public string ToPascalCase
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return source;
+
+                var words = source.Split(new[] { ' ', '_', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                if (words.Length == 0)
+                    return source;
+
+                var result = new StringBuilder();
+                foreach (var word in words)
+                {
+                    if (word.Length > 0)
+                    {
+                        result.Append(char.ToUpper(word[0]));
+                        if (word.Length > 1)
+                            result.Append(word[1..].ToLower());
+                    }
+                }
+
+                return result.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 下划线命名转换
+        /// </summary>
+        public string ToSnakeCase
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return source;
+
+                var result = new StringBuilder();
+                for (var i = 0; i < source.Length; i++)
+                {
+                    var c = source[i];
+                    if (char.IsUpper(c) && i > 0 && char.IsLower(source[i - 1]))
+                    {
+                        result.Append('_');
+                    }
+                    result.Append(char.ToLower(c));
+                }
+
+                return result.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 中划线命名转换
+        /// </summary>
+        public string ToKebabCase
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return source;
+
+                var result = new StringBuilder();
+                for (var i = 0; i < source.Length; i++)
+                {
+                    var c = source[i];
+                    if (char.IsUpper(c) && i > 0 && char.IsLower(source[i - 1]))
+                    {
+                        result.Append('-');
+                    }
+                    result.Append(char.ToLower(c));
+                }
+
+                return result.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 反转字符串
+        /// </summary>
+        public string Reverse
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return source;
+
+                var chars = source.ToCharArray();
+                Array.Reverse(chars);
+                return new string(chars);
+            }
+        }
+
+        /// <summary>
+        /// 重复字符串指定次数
+        /// </summary>
+        /// <param name="count">重复次数</param>
+        /// <returns></returns>
+        public string Repeat(int count)
+        {
+            if (count <= 0 || string.IsNullOrEmpty(source))
+                return string.Empty;
+
+            var result = new StringBuilder(source.Length * count);
+            for (var i = 0; i < count; i++)
+            {
+                result.Append(source);
+            }
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// 移除所有指定的字符
+        /// </summary>
+        /// <param name="chars">要移除的字符数组</param>
+        /// <returns></returns>
+        public string RemoveChars(params char[] chars)
+        {
+            if (string.IsNullOrEmpty(source) || chars == null || chars.Length == 0)
+                return source;
+
+            return string.Concat(source.Where(c => !chars.Contains(c)));
+        }
+
+        /// <summary>
+        /// 只保留数字字符
+        /// </summary>
+        public string OnlyDigits => string.IsNullOrEmpty(source) ? source : string.Concat(source.Where(char.IsDigit));
+
+        /// <summary>
+        /// 只保留字母字符
+        /// </summary>
+        public string OnlyLetters => string.IsNullOrEmpty(source) ? source : string.Concat(source.Where(char.IsLetter));
+
+        /// <summary>
+        /// 只保留字母和数字字符
+        /// </summary>
+        public string OnlyAlphaNumeric => string.IsNullOrEmpty(source) ? source : string.Concat(source.Where(char.IsLetterOrDigit));
+
+        /// <summary>
+        /// 安全截取字符串，超出长度则添加省略号
+        /// </summary>
+        /// <param name="maxLength">最大长度</param>
+        /// <param name="ellipsis">省略号，默认为"..."</param>
+        /// <returns></returns>
+        public string Truncate(int maxLength, string ellipsis = "...")
+        {
+            if (string.IsNullOrEmpty(source) || maxLength <= 0)
+                return source;
+
+            if (source.Length <= maxLength)
+                return source;
+
+            var truncateLength = maxLength - ellipsis.Length;
+            if (truncateLength <= 0)
+                return ellipsis[..maxLength];
+
+            return source[..truncateLength] + ellipsis;
+        }
+
+        /// <summary>
+        /// 计算字符串的字节长度（UTF-8编码）
+        /// </summary>
+        public int ByteLength => string.IsNullOrEmpty(source) ? 0 : Encoding.UTF8.GetByteCount(source);
+
+        /// <summary>
+        /// 判断是否包含中文字符
+        /// </summary>
+        public bool ContainsChinese
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return false;
+
+                return source.Any(c => c >= 0x4e00 && c <= 0x9fbb);
+            }
+        }
+
+        /// <summary>
+        /// 获取中文字符数量
+        /// </summary>
+        public int ChineseCount
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source))
+                    return 0;
+
+                return source.Count(c => c >= 0x4e00 && c <= 0x9fbb);
+            }
+        }
+
+        /// <summary>
+        /// 脱敏处理 - 手机号
+        /// </summary>
+        public string MaskPhone
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source) || source.Length != 11)
+                    return source;
+
+                return $"{source[..3]}****{source[7..]}";
+            }
+        }
+
+        /// <summary>
+        /// 脱敏处理 - 邮箱
+        /// </summary>
+        public string MaskEmail
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source) || !source.Contains('@'))
+                    return source;
+
+                var parts = source.Split('@');
+                if (parts.Length != 2)
+                    return source;
+
+                var name = parts[0];
+                var domain = parts[1];
+
+                if (name.Length <= 2)
+                    return $"{name[0]}***@{domain}";
+
+                var maskedName = name.Length <= 4
+                    ? $"{name[0]}***{name[^1]}"
+                    : $"{name[..2]}***{name[^2..]}";
+
+                return $"{maskedName}@{domain}";
+            }
+        }
+
+        /// <summary>
+        /// 脱敏处理 - 身份证
+        /// </summary>
+        public string MaskIdCard
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(source) || source.Length != 18)
+                    return source;
+
+                return $"{source[..6]}********{source[^4..]}";
+            }
         }
     }
 }

@@ -86,7 +86,7 @@ public class DebugLog
         }
         if (typeof(byte[]) == str.GetType())
         {
-            stringBuilder.Append(((byte[])str).Format());
+            stringBuilder.Append(((byte[])str).FormatHex);
         }
         else
         {

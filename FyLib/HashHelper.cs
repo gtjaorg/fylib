@@ -801,7 +801,7 @@ public static class HashHelper
     /// </remarks>
     public static string Crc32_(string value)
     {
-        return BitConverter.GetBytes(new CRC32().GetCRC32(value)).ToHex().ToUpper();
+        return BitConverter.GetBytes(new CRC32().GetCRC32(value)).Hex.ToUpper();
     }
     /// <summary>
     /// 计算字节数组的CRC32校验值，返回大写十六进制字符串
@@ -816,7 +816,7 @@ public static class HashHelper
     /// </remarks>
     public static string Crc32_(byte[] value)
     {
-        return BitConverter.GetBytes(new CRC32().GetCRC32(value)).ToHex().ToUpper();
+        return BitConverter.GetBytes(new CRC32().GetCRC32(value)).Hex.ToUpper();
     }
     /// <summary>
     /// 使用XTEA算法加密数据
