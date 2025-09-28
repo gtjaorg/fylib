@@ -30,7 +30,7 @@ public static class StringExtension
                 {
                     return false;
                 }
-                return double.TryParse(source,out _);
+                return double.TryParse(source, out _);
             }
 
         }
@@ -120,7 +120,7 @@ public static class StringExtension
         /// 检查当前字符串是否全部由数字字符（0-9）组成，且不为空。
         /// </summary>
         /// <value>当字符串只包含数字时返回 <c>true</c>；否则返回 <c>false</c>。</value>
-        public bool IsAllDigits => !string.IsNullOrEmpty(source) && source.AsSpan().IndexOfAnyExcept('0','9') < 0;
+        public bool IsAllDigits => !string.IsNullOrEmpty(source) && source.AsSpan().IndexOfAnyExcept("0123456789") < 0;
 
         /// <summary>
         /// BASE64 编码
@@ -192,7 +192,7 @@ public static class StringExtension
         /// <summary>
         /// 过滤所有空格与换行符
         /// </summary>
-        public string Fillter
+        public string Filter
         {
             get
             {
@@ -257,15 +257,15 @@ public static class StringExtension
         /// 文本到字节集
         /// </summary>
         /// <returns></returns>
-        public byte[] GetBytes()=>Encoding.UTF8.GetBytes(source);
-        
+        public byte[] GetBytes() => Encoding.UTF8.GetBytes(source);
+
         /// <summary>
         /// 文本到字节集
         /// </summary>
         /// <param name="encoding">编码模式</param>
         /// <returns></returns>
-        public byte[] GetBytes(Encoding encoding)=>encoding.GetBytes(source);
-        
+        public byte[] GetBytes(Encoding encoding) => encoding.GetBytes(source);
+
         /// <summary>
         /// 转换为无符号整数
         /// </summary>
@@ -293,7 +293,7 @@ public static class StringExtension
         /// </summary>
         /// <param name="len"></param>
         /// <returns></returns>
-        public string Left(int len)=>len > source.Length ? "" : source[..len];
+        public string Left(int len) => len > source.Length ? "" : source[..len];
 
 
         /// <summary>
@@ -325,8 +325,8 @@ public static class StringExtension
         /// </summary>
         /// <param name="len"></param>
         /// <returns></returns>
-        public string Right(int len) => len > source.Length ? "" : source[..len];
- 
+        public string Right(int len) => len > source.Length ? "" : source[^len..];
+
 
         /// <summary>
         /// 取文本中间
@@ -385,7 +385,7 @@ public static class StringExtension
         /// 十六进制文本转十进制
         /// </summary>
         /// <returns></returns>
-        public int HexToInt()=> Convert.ToInt32(source, 16);
+        public int HexToInt() => Convert.ToInt32(source, 16);
 
 
         /// <summary>
