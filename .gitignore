@@ -366,3 +366,5 @@ FodyWeavers.xsd
 .vs/
 FyLibTest/
 WinFyLib/
+qodana.yaml
+.DS_Store

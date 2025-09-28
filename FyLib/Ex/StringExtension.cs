@@ -20,7 +20,7 @@ public static class StringExtension
     extension(string source)
     {
         /// <summary>
-        /// 判断是否为整数格式
+        /// 判断是否为数值
         /// </summary>
         public bool IsNumeric
         {
@@ -30,8 +30,7 @@ public static class StringExtension
                 {
                     return false;
                 }
-
-                return source.All(char.IsDigit);
+                return double.TryParse(source,out _);
             }
 
         }
@@ -118,6 +117,12 @@ public static class StringExtension
         public bool IsDecimal => decimal.TryParse(source, out _);
 
         /// <summary>
+        /// 检查当前字符串是否全部由数字字符（0-9）组成，且不为空。
+        /// </summary>
+        /// <value>当字符串只包含数字时返回 <c>true</c>；否则返回 <c>false</c>。</value>
+        public bool IsAllDigits => !string.IsNullOrEmpty(source) && source.AsSpan().IndexOfAnyExcept('0','9') < 0;
+
+        /// <summary>
         /// BASE64 编码
         /// </summary>
         public string Base64
@@ -142,11 +147,11 @@ public static class StringExtension
         /// 将字符串解析为JObject对象
         /// </summary>
         /// <returns>解析后的JObject对象</returns>
-        public JObject? ToJson()
+        public JToken? ToJson()
         {
             try
             {
-                var obj = JObject.Parse(source);
+                var obj = JToken.Parse(source);
                 return obj;
             }
             catch
@@ -193,7 +198,6 @@ public static class StringExtension
             {
                 var str = source;
                 str = Regex.Replace(str, "\\s+", "");
-                str = Regex.Replace(str, "[\n\r]", "");
                 return str;
             }
         }
@@ -236,142 +240,37 @@ public static class StringExtension
         /// <returns></returns>
         public string? GetUrl(string regex = "http[s]?://(?:(?!http[s]?://)[a-zA-Z]|[0-9]|[$\\-_@.&+/]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
         {
-            var enumerator = new System.Text.RegularExpressions.Regex(regex).Matches(source).GetEnumerator();
-            try
-            {
-                if (enumerator.MoveNext())
-                {
-                    var temp = enumerator.Current;
-                    if (temp == null) return null;
-                    return ((System.Text.RegularExpressions.Match)temp)?.Value;
-                }
-            }
-            finally
-            {
-                var disposable = enumerator as System.IDisposable;
-                disposable?.Dispose();
-            }
-
-            return null;
+            var math = Regex.Match(source, regex);
+            return math.Success ? math.Value : null;
         }
 
         /// <summary>
         /// 十六进制文本到字节集
         /// </summary>
         /// <returns></returns>
-        public byte[] ToBytes()
-        {
-            try
-            {
-                var str = source;
-                str = System.Text.RegularExpressions.Regex.Replace(str, "\\s+", "");
-                str = System.Text.RegularExpressions.Regex.Replace(str, "[\n\r]", "");
-                var hex = str;
+        public byte[] ToBytes() =>
+            string.IsNullOrWhiteSpace(source) ? [] :
+                Convert.FromHexString(string.Concat(source.Where(c => !char.IsWhiteSpace(c))));
 
-                if (hex.Length % 2 != 0)
-                {
-                    return [];
-                }
-
-                var array = new byte[hex.Length / 2];
-                var num = 0;
-                checked
-                {
-                    for (var i = 0; i < hex.Length; i += 2)
-                    {
-                        array[num++] = Convert.ToByte(hex.Substring(i, 2), 16);
-                    }
-
-                    return array;
-                }
-            }
-            catch
-            {
-                return [];
-            }
-        }
 
         /// <summary>
         /// 文本到字节集
         /// </summary>
         /// <returns></returns>
-        public byte[] GetBytes()
-        {
-            return Encoding.UTF8.GetBytes(source);
-        }
-
+        public byte[] GetBytes()=>Encoding.UTF8.GetBytes(source);
+        
         /// <summary>
         /// 文本到字节集
         /// </summary>
         /// <param name="encoding">编码模式</param>
         /// <returns></returns>
-        public byte[] GetBytes(Encoding encoding)
-        {
-            return encoding.GetBytes(source);
-        }
-
+        public byte[] GetBytes(Encoding encoding)=>encoding.GetBytes(source);
+        
         /// <summary>
         /// 转换为无符号整数
         /// </summary>
         /// <returns></returns>
-        public uint ToUint()
-        {
-            var result = 0u;
-            if (!string.IsNullOrEmpty(source) && source.All(char.IsDigit))
-            {
-                result = uint.Parse(source);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// 分割字符串到数组
-        /// </summary>
-        /// <param name="strSplit">用作分割的字符串</param>
-        /// <returns></returns>
-        public string[] Split(string strSplit)
-        {
-            var array = new string[1];
-            var num = source.IndexOf(strSplit, 0, StringComparison.Ordinal);
-            if (num < 0)
-            {
-                array[0] = source;
-                return array;
-            }
-
-            array[0] = source[..num];
-            return StringExtension.SplitRecursive(source[checked(num + strSplit.Length)..], strSplit, array);
-        }
-
-        /// <summary>
-        /// 采用递归将字符串分割成数组
-        /// </summary>
-        /// <param name="strSource"></param>
-        /// <param name="strSplit"></param>
-        /// <param name="attachArray"></param>
-        /// <returns></returns>
-        private static string[] SplitRecursive(string strSource, string strSplit, string[] attachArray)
-        {
-            while (true)
-            {
-                checked
-                {
-                    var array = new string[attachArray.Length + 1];
-                    attachArray.CopyTo(array, 0);
-                    var num = strSource.IndexOf(strSplit, 0, StringComparison.Ordinal);
-                    if (num < 0)
-                    {
-                        array[attachArray.Length] = strSource;
-                        return array;
-                    }
-
-                    array[attachArray.Length] = strSource[..num];
-                    strSource = strSource[(num + strSplit.Length)..];
-                    attachArray = array;
-                }
-            }
-        }
+        public uint? ToUint() => uint.TryParse(source, out var result) ? result : null;
 
         /// <summary>
         /// 取文本左边
@@ -394,10 +293,8 @@ public static class StringExtension
         /// </summary>
         /// <param name="len"></param>
         /// <returns></returns>
-        public string Left(int len)
-        {
-            return len > source.Length ? "" : source[..len];
-        }
+        public string Left(int len)=>len > source.Length ? "" : source[..len];
+
 
         /// <summary>
         /// 取文本右边
@@ -419,7 +316,6 @@ public static class StringExtension
                 {
                     return "";
                 }
-
                 return source.Substring(num + right.Length, length - (num + right.Length));
             }
         }
@@ -429,16 +325,8 @@ public static class StringExtension
         /// </summary>
         /// <param name="len"></param>
         /// <returns></returns>
-        public string Right(int len)
-        {
-            if (len > source.Length)
-            {
-                return "";
-            }
-
-            var startIndex = checked(source.Length - len);
-            return source.Substring(startIndex, len);
-        }
+        public string Right(int len) => len > source.Length ? "" : source[..len];
+ 
 
         /// <summary>
         /// 取文本中间
@@ -497,15 +385,14 @@ public static class StringExtension
         /// 十六进制文本转十进制
         /// </summary>
         /// <returns></returns>
-        public int HexToInt()
-        {
-            return Convert.ToInt32(source, 16);
-        }
+        public int HexToInt()=> Convert.ToInt32(source, 16);
+
 
         /// <summary>
-        /// 转换为整数
+        /// 将字符串转换为整数。如果字符串包含小数点，则仅取小数点前的部分进行解析。
+        /// 当输入为 null、空字符串或不完全由数字组成时，返回 0。
         /// </summary>
-        /// <returns></returns>
+        /// <returns>解析得到的整数值；若无法转换则返回 0。</returns>
         public int ToInt()
         {
             var result = 0;
