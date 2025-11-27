@@ -1,15 +1,45 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 /// <summary>
 /// Object扩展类
 /// </summary>
 public static class ObjectHelper
 {
+    /// <summary>
+    /// 将对象转换为JToken类型
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static JToken? ToJToken(this object obj)
+    {
+        if (obj == null)
+            return null;
+        return JToken.FromObject(obj);
+    }
+    /// <summary>
+    /// 将对象转换为JObject类型
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static JObject? ToJObject(this object obj)
+    {
+        if (obj == null)
+            return null;
+        return JObject.FromObject(obj);
+    }
+    /// <summary>
+    /// 将对象转换为JArray类型
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static JArray? ToJArray(this object obj)
+    {
+        if (obj == null)
+            return null;
+        return JArray.FromObject(obj);
+    }
     /// <summary>
     /// 尝试将对象转换为int类型
     /// </summary>

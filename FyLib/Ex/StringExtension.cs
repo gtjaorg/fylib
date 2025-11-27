@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Numerics;
@@ -133,6 +134,57 @@ public static class StringExtension
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(source));
             }
         }
+        /// <summary>
+        /// SHA256 加密
+        /// </summary>
+        public string Sha256
+        {
+            get
+            {
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var bytes = Encoding.UTF8.GetBytes(source);
+                var hashBytes = sha256.ComputeHash(bytes);
+                return Convert.ToHexString(hashBytes);
+            }
+        }
+        /// <summary>
+        /// SHA1 加密
+        /// </summary>
+        public string Sha1
+        {
+            get
+            {
+                using var sha1 = System.Security.Cryptography.SHA1.Create();
+                var bytes = Encoding.UTF8.GetBytes(source);
+                var hashBytes = sha1.ComputeHash(bytes);
+                return Convert.ToHexString(hashBytes);
+            }
+        }
+        /// <summary>
+        /// SHA512 加密
+        /// </summary>
+        public string Sha512
+        {
+            get
+            {
+                using var sha512 = System.Security.Cryptography.SHA512.Create();
+                var bytes = Encoding.UTF8.GetBytes(source);
+                var hashBytes = sha512.ComputeHash(bytes);
+                return Convert.ToHexString(hashBytes);
+            }
+        }
+
+        /// <summary>
+        /// CRC32 校验
+        /// </summary>
+        public string Crc32
+        {
+            get
+            {
+                var bytes = Encoding.UTF8.GetBytes(source);
+                return bytes.Crc32.ToString("X8");
+            }
+        }
 
         /// <summary>
         /// 判断字符串是否可以转换为布尔值
@@ -144,22 +196,6 @@ public static class StringExtension
         /// </summary>
         public bool IsDateTime => DateTime.TryParse(source, out _);
 
-        /// <summary>
-        /// 将字符串解析为JObject对象
-        /// </summary>
-        /// <returns>解析后的JObject对象</returns>
-        public JToken? ToJson()
-        {
-            try
-            {
-                var obj = JToken.Parse(source);
-                return obj;
-            }
-            catch
-            {
-                return null;
-            }
-        }
 
         /// <summary>
         /// 将字符串转换为指定类型的对象
@@ -168,7 +204,7 @@ public static class StringExtension
         /// <returns>转换后的对象，如果转换失败则返回null</returns>
         public T? ToObject<T>() where T : class
         {
-            var obj = source.ToJson();
+            var obj = source.ToJToken();
             if (obj == null) return null;
             try
             {
@@ -179,7 +215,66 @@ public static class StringExtension
                 return null;
             }
         }
-
+        /// <summary>
+        /// 转换为十进制
+        /// </summary>
+        /// <returns></returns>
+        public decimal ToDecimal()
+        {
+            if (decimal.TryParse(source, out var result))
+            {
+                return result;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// 转换为双精度浮点数
+        /// </summary>
+        /// <returns></returns>
+        public double ToDouble()
+        {
+            if (double.TryParse(source, out var result))
+            {
+                return result;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// 转换为长整数
+        /// </summary>
+        /// <returns></returns>
+        public long ToLong()
+        {
+            if (long.TryParse(source, out var result))
+            {
+                return result;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// 转换为布尔值
+        /// </summary>
+        /// <returns></returns>
+        public bool ToBool()
+        {
+            if (bool.TryParse(source, out var result))
+            {
+                return result;
+            }
+            return false;
+        }
+        /// <summary>
+        /// 转换为日期时间
+        /// </summary>
+        /// <returns></returns>
+        public DateTime ToDateTime()
+        {
+            if (DateTime.TryParse(source, out var result))
+            {
+                return result;
+            }
+            return DateTime.MinValue;
+        }
         /// <summary>
         /// 转换为 QuickHttp 对象
         /// </summary>
@@ -447,12 +542,12 @@ public static class StringExtension
         /// <summary>
         /// HTML 编码
         /// </summary>
-        public string HtmlEncode => System.Net.WebUtility.HtmlEncode(source);
+        public string HtmlEncode => WebUtility.HtmlEncode(source);
 
         /// <summary>
         /// HTML 解码
         /// </summary>
-        public string HtmlDecode => System.Net.WebUtility.HtmlDecode(source);
+        public string HtmlDecode => WebUtility.HtmlDecode(source);
 
         /// <summary>
         /// 判断是否为有效的电子邮箱地址
@@ -831,5 +926,108 @@ public static class StringExtension
                 return $"{source[..6]}********{source[^4..]}";
             }
         }
+        /// <summary>
+        /// 按行分割（自动处理\r\n和\n）
+        /// </summary>
+        public string[] SplitLines =>
+            source.Split(["\r\n", "\n"], StringSplitOptions.None);
+
+        /// <summary>
+        /// 按行分割（移除空行）
+        /// </summary>
+        public string[] SplitLinesRemoveEmpty =>
+            source.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
+
+        /// <summary>
+        /// 判断是否在指定范围内的整数
+        /// </summary>
+        public bool IsIntInRange(int min, int max) =>
+            int.TryParse(source, out var value) && value >= min && value <= max;
+
+        /// <summary>
+        /// 判断是否为浮点数
+        /// </summary>
+        public bool IsFloat => float.TryParse(source, out _);
+        /// <summary>
+        /// 全角转半角
+        /// </summary>
+        public string ToHalfWidth
+        {
+            get
+            {
+                var result = new StringBuilder();
+                foreach (var c in source)
+                {
+                    if (c == '\u3000')
+                        result.Append(' ');
+                    else if (c > '\uFF00' && c < '\uFF5F')
+                        result.Append((char)(c - 0xFEE0));
+                    else
+                        result.Append(c);
+                }
+                return result.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 半角转全角
+        /// </summary>
+        public string ToFullWidth
+        {
+            get
+            {
+                var result = new StringBuilder();
+                foreach (var c in source)
+                {
+                    if (c == ' ')
+                        result.Append('\u3000');
+                    else if (c > '\u0020' && c < '\u007F')
+                        result.Append((char)(c + 0xFEE0));
+                    else
+                        result.Append(c);
+                }
+                return result.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 判断是否为有效的文件路径
+        /// </summary>
+        public bool IsValidFilePath
+        {
+            get
+            {
+                try
+                {
+                    return !string.IsNullOrWhiteSpace(source) &&
+                           Path.GetFullPath(source) != null;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取文件扩展名（含点）
+        /// </summary>
+        public string FileExtension => Path.GetExtension(source);
+
+        /// <summary>
+        /// 获取文件名（不含路径）
+        /// </summary>
+        public string FileName => Path.GetFileName(source);
+
+        /// <summary>
+        /// 获取文件名（不含扩展名）
+        /// </summary>
+        public string FileNameWithoutExtension => Path.GetFileNameWithoutExtension(source);
+
+        /// <summary>
+        /// 获取目录名
+        /// </summary>
+        public string DirectoryName => Path.GetDirectoryName(source) ?? string.Empty;
     }
+
 }

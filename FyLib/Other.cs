@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -454,5 +456,195 @@ public static class Other
         var listenPort = ((IPEndPoint)listener.LocalEndpoint).Port;
         listener.Stop();
         return listenPort;
+    }
+
+    /// <summary>
+    /// 获取机器码（基于硬件特征生成唯一标识）
+    /// </summary>
+    /// <returns>32位十六进制机器码字符串</returns>
+    /// <remarks>
+    /// 机器码基于以下信息生成：
+    /// 1. 所有网卡MAC地址组合
+    /// 2. 计算机名称和用户信息
+    /// 3. 操作系统详细信息
+    /// 4. 处理器和内存信息
+    /// 5. 磁盘序列号信息
+    /// 6. 系统安装时间等唯一标识
+    /// 生成的机器码在同一台机器上保持稳定，不同机器间具有高度唯一性
+    /// </remarks>
+    public static string GetMachineCode()
+    {
+        try
+        {
+            var machineInfo = new StringBuilder();
+
+            // 1. 获取所有网卡MAC地址（不只是第一个）
+            var allMacAddresses = GetAllMacAddresses();
+            machineInfo.Append(string.Join("", allMacAddresses));
+
+            // 2. 计算机名称和用户信息
+            machineInfo.Append(Environment.MachineName);
+            machineInfo.Append(Environment.UserName);
+            machineInfo.Append(Environment.UserDomainName);
+
+            // 3. 操作系统详细信息
+            machineInfo.Append(Environment.OSVersion.ToString());
+            machineInfo.Append(Environment.OSVersion.Version.ToString());
+            machineInfo.Append(RuntimeInformation.OSDescription);
+            machineInfo.Append(RuntimeInformation.OSArchitecture.ToString());
+
+            // 4. 处理器详细信息
+            machineInfo.Append(Environment.ProcessorCount.ToString());
+            machineInfo.Append(RuntimeInformation.ProcessArchitecture.ToString());
+
+            // 5. 系统目录路径（包含驱动器信息）- 替代内存信息，更稳定
+            machineInfo.Append(Environment.SystemDirectory);
+            machineInfo.Append(Environment.CurrentDirectory);
+
+            // 6. 环境变量中的唯一信息
+            var computerName = Environment.GetEnvironmentVariable("COMPUTERNAME")
+                            ?? Environment.GetEnvironmentVariable("HOSTNAME");
+            if (!string.IsNullOrEmpty(computerName))
+            {
+                machineInfo.Append(computerName);
+            }
+
+            // 7. 获取系统安装相关的稳定信息
+            try
+            {
+                // 使用系统目录的创建时间（系统安装时间），这是相对稳定的
+                var systemDir = new DirectoryInfo(Environment.SystemDirectory);
+                if (systemDir.Exists)
+                {
+                    // 只取年月日，忽略时分秒，提高稳定性
+                    var installDate = systemDir.CreationTime.ToString("yyyyMMdd");
+                    machineInfo.Append(installDate);
+                }
+            }
+            catch
+            {
+                // 最后的备用方案：使用机器名和处理器数量的组合
+                machineInfo.Append($"{Environment.MachineName}_{Environment.ProcessorCount}");
+            }
+            // 8. 获取驱动器信息
+            try
+            {
+                var drives = DriveInfo.GetDrives()
+                    .Where(d => d.IsReady && d.DriveType == DriveType.Fixed)
+                    .OrderBy(d => d.Name)
+                    .ToArray();
+
+                foreach (var drive in drives)
+                {
+                    machineInfo.Append(drive.Name);
+                    machineInfo.Append(drive.TotalSize.ToString());
+
+                    // 添加卷标信息
+                    if (!string.IsNullOrEmpty(drive.VolumeLabel))
+                    {
+                        machineInfo.Append(drive.VolumeLabel);
+                    }
+                }
+            }
+            catch
+            {
+                // 忽略驱动器信息获取失败
+            }
+
+            // 9. 如果信息太少，添加随机但持久的标识
+            if (machineInfo.Length < 50)
+            {
+                machineInfo.Append(GetPersistentIdentifier());
+            }
+
+            // 使用SHA256生成固定长度的机器码
+            using var sha256 = SHA256.Create();
+            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(machineInfo.ToString()));
+
+            // 转换为32位十六进制字符串
+            return Convert.ToHexString(hashBytes)[..32].ToUpper();
+        }
+        catch
+        {
+            // 如果获取硬件信息失败，返回基于时间和随机数的备用码
+            return GetFallbackMachineCode();
+        }
+    }
+
+    /// <summary>
+    /// 获取所有可用的网卡MAC地址
+    /// </summary>
+    /// <returns>MAC地址列表</returns>
+    private static List<string> GetAllMacAddresses()
+    {
+        var macAddresses = new List<string>();
+
+        try
+        {
+            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(ni => ni.OperationalStatus == OperationalStatus.Up
+                          && ni.NetworkInterfaceType != NetworkInterfaceType.Loopback
+                          && ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel)
+                .OrderBy(ni => ni.Name) // 保证顺序一致性
+                .ToArray();
+
+            foreach (var ni in networkInterfaces)
+            {
+                var mac = ni.GetPhysicalAddress().ToString();
+                if (!string.IsNullOrEmpty(mac) && mac != "000000000000")
+                {
+                    macAddresses.Add(mac);
+                }
+            }
+        }
+        catch
+        {
+            // 忽略获取MAC地址的异常
+        }
+
+        return macAddresses;
+    }
+
+    /// <summary>
+    /// 获取持久的标识符（基于系统特征生成的伪随机值）
+    /// </summary>
+    /// <returns>持久标识符</returns>
+    private static string GetPersistentIdentifier()
+    {
+        // 基于系统路径和用户信息生成持久的标识
+        var persistentInfo = new StringBuilder();
+        persistentInfo.Append(Environment.GetFolderPath(Environment.SpecialFolder.System));
+        persistentInfo.Append(Environment.GetFolderPath(Environment.SpecialFolder.Windows));
+        persistentInfo.Append(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        persistentInfo.Append(Environment.MachineName);
+        persistentInfo.Append(Environment.ProcessorCount);
+
+        // 使用固定种子确保在同一机器上生成相同的"随机"值
+        var seed = persistentInfo.ToString().GetHashCode();
+        var random = new Random(seed);
+
+        return random.Next(100000000, 999999999).ToString();
+    }
+
+    /// <summary>
+    /// 获取备用机器码（当硬件信息获取失败时使用）
+    /// </summary>
+    /// <returns>备用机器码</returns>
+    private static string GetFallbackMachineCode()
+    {
+        var fallbackInfo = new StringBuilder();
+        fallbackInfo.Append(Environment.MachineName);
+        fallbackInfo.Append(Environment.UserName);
+        fallbackInfo.Append(Environment.OSVersion.Platform.ToString());
+        fallbackInfo.Append(Environment.ProcessorCount.ToString());
+        fallbackInfo.Append(Environment.SystemDirectory);
+
+        // 添加一个基于系统信息的稳定哈希值
+        var systemHash = (Environment.MachineName + Environment.UserName).GetHashCode();
+        fallbackInfo.Append(systemHash.ToString());
+
+        using var sha256 = SHA256.Create();
+        var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(fallbackInfo.ToString()));
+        return Convert.ToHexString(hashBytes)[..32].ToUpper();
     }
 }

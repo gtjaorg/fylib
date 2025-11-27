@@ -142,6 +142,35 @@ public static class BytesExtension
     }
 
     /// <summary>
+    /// CRC32 查找表（静态缓存以提高性能）
+    /// </summary>
+    private static readonly uint[] Crc32Table = GenerateCrc32Table();
+
+    /// <summary>
+    /// 生成 CRC32 查找表
+    /// </summary>
+    private static uint[] GenerateCrc32Table()
+    {
+        const uint polynomial = 0xEDB88320;
+        var table = new uint[256];
+
+        for (uint i = 0; i < 256; i++)
+        {
+            var entry = i;
+            for (var j = 0; j < 8; j++)
+            {
+                if ((entry & 1) == 1)
+                    entry = (entry >> 1) ^ polynomial;
+                else
+                    entry >>= 1;
+            }
+            table[i] = entry;
+        }
+
+        return table;
+    }
+
+    /// <summary>
     /// 提供字节数组的扩展方法
     /// </summary>
     extension(byte[] source)
@@ -262,7 +291,7 @@ public static class BytesExtension
         /// 获取SHA-1哈希值的十六进制字符串表示形式
         /// </summary>
         /// <returns>SHA-1哈希值的十六进制字符串，格式为大写</returns>
-        public string SHA1
+        public string Sha1
         {
             get
             {
@@ -276,7 +305,7 @@ public static class BytesExtension
         /// 获取SHA-256哈希值的十六进制字符串表示形式
         /// </summary>
         /// <returns>SHA-256哈希值的十六进制字符串，格式为大写</returns>
-        public string SHA256
+        public string Sha256
         {
             get
             {
@@ -290,7 +319,7 @@ public static class BytesExtension
         /// 获取SHA-512哈希值的十六进制字符串表示形式
         /// </summary>
         /// <returns>SHA-512哈希值的十六进制字符串，格式为大写</returns>
-        public string SHA512
+        public string Sha512
         {
             get
             {
@@ -371,27 +400,11 @@ public static class BytesExtension
         /// 计算CRC32校验值
         /// </summary>
         /// <returns>CRC32校验值</returns>
-        public uint CRC32
+        public uint Crc32
         {
             get
             {
-                const uint polynomial = 0xEDB88320;
-                var table = new uint[256];
-
-                // 初始化CRC表
-                for (uint i = 0; i < 256; i++)
-                {
-                    var entry = i;
-                    for (var j = 0; j < 8; j++)
-                    {
-                        if ((entry & 1) == 1)
-                            entry = (entry >> 1) ^ polynomial;
-                        else
-                            entry >>= 1;
-                    }
-                    table[i] = entry;
-                }
-
+                var table = Crc32Table;
                 // 计算CRC32
                 uint crc = 0xFFFFFFFF;
                 foreach (var b in source)
@@ -770,12 +783,9 @@ public static class BytesExtension
         /// 将4位字节数组转换为IP地址字符串
         /// </summary>
         /// <returns>IP地址字符串，格式为"x.x.x.x"</returns>
-        public string ToIP()
+        public string ToIp()
         {
-            if (source.Length != 4)
-                return string.Empty;
-
-            return $"{source[0]}.{source[1]}.{source[2]}.{source[3]}";
+            return source.Length != 4 ? string.Empty : $"{source[0]}.{source[1]}.{source[2]}.{source[3]}";
         }
     }
 }

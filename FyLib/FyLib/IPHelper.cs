@@ -139,7 +139,8 @@ namespace FyLib
         /// <summary>
         /// 获取当前网段所有ip
         /// </summary>
-        /// <returns></returns>
+        /// <param name="ip">当前网段的IP地址，支持使用"*"作为通配符</param>
+        /// <returns>当前网段所有IP地址的列表</returns>
         public static List<string>? GetAllAddress(string ip)
         {
             if (ip.IndexOf("*") > -1) ip = ip.Replace("*", "1");
