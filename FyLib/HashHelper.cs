@@ -698,4 +698,21 @@ public static class HashHelper
     }
 
     #endregion
+    /// <summary>
+    /// 检查密码强度
+    /// </summary>
+    /// <param name="password"></param>
+    /// <returns></returns>
+    public static bool IsPasswordStrong(string password)
+    {
+        if (string.IsNullOrEmpty(password) || password.Length < 8)
+            return false;
+
+        var hasUpper = password.Any(char.IsUpper);
+        var hasLower = password.Any(char.IsLower);
+        var hasDigit = password.Any(char.IsDigit);
+        var hasSpecial = password.Any(c => !char.IsLetterOrDigit(c));
+
+        return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
 }

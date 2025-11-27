@@ -65,9 +65,9 @@ public static class Other
     /// 获取当前时区时间戳毫秒
     /// </summary>
     /// <returns></returns>
-    public static int LocalTimeStampX()
+    public static long LocalTimeStampX()
     {
-        return checked((int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
+        return checked((long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public static class Other
     /// <param name="timestamp">十位的时间戳</param>
     /// <param name="isMilliseconds">是否毫秒</param>
     /// <returns></returns>
-    public static string TimeStampToString(int timestamp, bool isMilliseconds = false)
+    public static string TimeStampToString(long timestamp, bool isMilliseconds = false)
     {
         // 判断时间戳是否为毫秒级
         if (isMilliseconds)
@@ -407,9 +407,11 @@ public static class Other
     /// <returns></returns>
     public static bool Ping(string ip, int timeOut = 1000)
     {
-        var ping = new Ping();
-        new PingOptions().DontFragment = true;
-        return ping.Send(ip, timeOut).Status == IPStatus.Success;
+        using var ping = new Ping();
+        var options = new PingOptions { DontFragment = true };
+        var buffer = new byte[32];
+        var reply = ping.Send(ip, timeOut, buffer, options);
+        return reply.Status == IPStatus.Success;
     }
 
     /// <summary>
